@@ -969,3 +969,4 @@ rg -n "Blanquart2018" simulator
 rg -n "Methanol|methanol" simulator
 rg -n "ICE Simulator" simulator
 rg -n "GM" simulator
+rg -n "np.trapz" simulator

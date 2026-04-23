@@ -533,7 +533,7 @@ class EngineSimulator:
 
         # Net indicated work over whole simulation (could be multiple cycles)
         # W = ∮ p dV  [J], positive for output work.
-        Wi_total_raw = float(np.trapz(p, V))
+        Wi_total_raw = float(np.trapezoid(p, V))
         Wi_cycle_raw = Wi_total_raw / cycles  # J per cylinder per cycle (no ht-loss / η_c)
 
         # Apply heat-transfer factor, φ-dependent combustion efficiency,
@@ -562,7 +562,7 @@ class EngineSimulator:
                 i1 = i0 + n_seg_per_cycle
                 if i1 + 1 > len(p):
                     break
-                Wi_k = float(np.trapz(p[i0:i1+1], V[i0:i1+1]))
+                Wi_k = float(np.trapezoid(p[i0:i1+1], V[i0:i1+1]))
                 imeps.append(Wi_k / Vd)
             if len(imeps) >= 2:
                 arr = np.array(imeps, dtype=float)
