@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "title": "Template SI single-cylinder engine case",
+    "description": "Edit this file to create a new GM-style simulation run.",
+    "units": "SI (m, kg, s, K, Pa)"
+  },
+  "geometry": {
+    "bore_m": 0.086,
+    "stroke_m": 0.086,
+    "con_rod_m": 0.143,
+    "compression_ratio": 10.0,
+    "piston_pin_offset_m": 0.0
+  },
+  "operating": {
+    "engine_speed_rpm": 4500.0,
+    "air_fuel_ratio": 14.7,
+    "intake_pressure_Pa": 101325.0,
+    "exhaust_pressure_Pa": 101325.0,
+    "intake_temp_K": 300.0,
+    "crank_angle_ignition_deg": -20.0,
+    "combustion_duration_deg": 60.0,
+    "fuel_id": "gasoline",
+    "integration_tolerance": 1e-05,
+    "crank_step_deg": 1.0,
+    "egr_mass_fraction": 0.0,
+    "combustion_efficiency": 0.98,
+    "pressure_rise_factor": 3.0,
+    "num_cylinders": 1,
+    "stroke_type": "four-stroke",
+    "friction_model": "fmep-speed",
+    "friction_mode": "passenger",
+    "mechanical_efficiency": 0.9,
+    "fmep_base_bar": 2.0,
+    "fmep_speed_coeff_bar_per_krpm": 0.12,
+    "fmep_speed_quad_bar_per_krpm2": 0.0
+  }
+}
