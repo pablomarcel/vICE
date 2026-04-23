@@ -1,0 +1,9 @@
+[run]
+branch = True
+source = simulator
+
+[html]
+directory = simulator/out/htmlcov
+
+[report]
+show_missing = True

@@ -1,0 +1,33 @@
+# 1) Add to PYTHONPATH or install as package, then:
+
+python -m simulator.main
+
+# or CLI style:
+
+python -m simulator.cli run \
+  --config simulator/in/sample_si_engine.json \
+  --outfile simulator/out/sample_si_engine_out.json \
+  --cycles 1
+
+python -m simulator.cli plot \
+  --result simulator/out/sample_si_engine_out.json
+
+# console menu
+
+python -m simulator.main
+
+# CLI
+python -m simulator.cli list-inputs
+python -m simulator.cli run --config simulator/in/sample_si_methanol_engine.json --outfile simulator/out/methanol_out.json
+python -m simulator.cli plot --result simulator/out/methanol_out.json
+
+python -m simulator.cli run \
+  --config simulator/in/sample_si_engine.json \
+  --outfile simulator/out/sample_si_engine_out.json
+
+python -m simulator.cli run \
+  --config simulator/in/sample_si_engine.json \
+  --outfile simulator/out/gasoline_out.json
+
+python -m simulator.cli plot \
+  --result simulator/out/gasoline_out.json

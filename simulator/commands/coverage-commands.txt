@@ -1,0 +1,5 @@
+pytest simulator/tests \
+  --override-ini addopts= \
+  --cov \
+  --cov-config=simulator/.coveragerc \
+  --cov-report=term-missing

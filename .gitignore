@@ -1,0 +1,97 @@
+# ----------------------------
+# Python bytecode / caches
+# ----------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Compiled extensions
+*.so
+
+# ----------------------------
+# Build / packaging
+# ----------------------------
+build/
+dist/
+.eggs/
+*.egg-info/
+pip-wheel-metadata/
+wheelhouse/
+
+# ----------------------------
+# Virtual environments
+# ----------------------------
+.venv/
+venv/
+ENV/
+env/
+
+# ----------------------------
+# Testing / coverage
+# ----------------------------
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.cache/
+coverage.xml
+
+# ----------------------------
+# Type checkers / analyzers
+# ----------------------------
+.mypy_cache/
+.dmypy.json
+.pytype/
+.pyre/
+.pyrightcache/
+
+# ----------------------------
+# Jupyter / notebooks (if any)
+# ----------------------------
+.ipynb_checkpoints/
+*.ipynb
+
+# ----------------------------
+# Logs & temp
+# ----------------------------
+*.log
+logs/
+tmp/
+temp/
+
+# ----------------------------
+# IDE / editor settings
+# ----------------------------
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ----------------------------
+# OS cruft (macOS / Windows)
+# ----------------------------
+.DS_Store
+._*
+Thumbs.db
+
+# ----------------------------
+# Env/config secrets
+# ----------------------------
+.env
+.env.*
+*.env
+
+# ----------------------------
+# Sphinx _build folders
+# ----------------------------
+
+**/docs/_build/
+
+# ----------------------------
+# Project-specific artifacts
+# ----------------------------
+# simulator app outputs (keep inputs under simulator/in tracked)
+simulator/out/
+
+
+
