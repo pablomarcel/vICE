@@ -24,7 +24,7 @@ class ICESimulatorApp:
     # UI helpers
     # ------------------------------------------------------------------
     def _print_banner(self) -> None:
-        title = "ICE Simulator"
+        title = "vICE"
         if Figlet is not None:
             fig = Figlet(font="slant")
             print(fig.renderText(title))
@@ -56,7 +56,7 @@ class ICESimulatorApp:
             elif choice == "3":
                 self._menu_plot_indicator()
             elif choice == "4":
-                print("[OK] Exiting ICE Simulator. Bye.")
+                print("[OK] Exiting vICE. Bye.")
                 return
             else:
                 print("[WARN] Invalid choice, please select 1-4.")

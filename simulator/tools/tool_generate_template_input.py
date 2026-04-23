@@ -6,7 +6,7 @@ from .. import io
 TEMPLATE = {
     "meta": {
         "title": "Template SI single-cylinder engine case",
-        "description": "Edit this file to create a new GM-style simulation run.",
+        "description": "Edit this file to create a new simulation run.",
         "units": "SI (m, kg, s, K, Pa)",
     },
     "geometry": {

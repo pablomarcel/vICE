@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "GM-style demonstration SI engine case (gasoline)",
+    "title": "demonstration SI engine case (gasoline)",
     "description": "Simple single-cylinder, four-stroke SI engine for architecture testing.",
     "units": "SI (m, kg, s, K, Pa)"
   },

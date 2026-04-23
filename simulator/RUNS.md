@@ -41,8 +41,6 @@ runroot() { ( cd "$(_sim_root)" && "$@" ); }
 runroot mkdir -p simulator/out simulator/in
 ```
 
----
-
 ## 0) Help
 
 ```bash
@@ -50,17 +48,13 @@ runroot python -m simulator.cli \
   --help
 ```
 
----
-
-## 1) Text UI (GM-style console front-end)
+## 1) Text UI (Simulator console front-end)
 
 Interactive menu: list inputs, run a case, plot indicator diagram.
 
 ```bash
 runroot python -m simulator.main
 ```
-
----
 
 ## 2) List available JSON input cases
 
@@ -74,8 +68,6 @@ You should see paths under `simulator/in/`, e.g.:
 - `simulator/in/sample_si_methanol_engine.json`
 - `simulator/in/template_si_engine.json` (after step 3)
 
----
-
 ## 3) Seed a template SI engine input
 
 One-time helper: write a generic SI case you can clone/edit.
@@ -87,8 +79,6 @@ runroot python -m simulator.tools.tool_generate_template_input
 This creates:
 
 - `simulator/in/template_si_engine.json`
-
----
 
 ## 4) Baseline gasoline SI case (single cylinder) — run + plot
 
@@ -111,8 +101,6 @@ Or using the lower-level tool:
 ```bash
 runroot python -m simulator.tools.tool_indicator_from_result simulator/out/sample_si_engine_out.json
 ```
-
----
 
 ## 5) Methanol comparison (same geometry, different fuel)
 
@@ -142,8 +130,6 @@ Compare:
 - indicated / brake power and torque,
 driven by different LHV and AFR.
 
----
-
 ## 6) Multi‑cycle run (stability check / repeated P–V loops)
 
 Run several cycles in one shot to check repeatability of the indicator diagram
@@ -164,8 +150,6 @@ runroot python -m simulator.cli plot \
 The `SimulationResult` still reports IMEP / power / torque based on a
 **per‑cycle** normalization; total work is internally divided by the number
 of simulated cycles.
-
----
 
 ## 7) Cylinder‑count effect — 1‑cyl vs 4‑cyl at fixed IMEP
 
@@ -196,8 +180,6 @@ PY
 This is a nice “so‑what” demo: **same IMEP**, but total power/torque scale
 with cylinder count, which is exactly what you’d discuss in a performance
 / architecture review.
-
----
 
 ## 8) Friction presets — passenger vs performance vs F1‑ish
 
@@ -266,7 +248,7 @@ for r in results:
 PY
 ```
 
-This is a good hook for talking about **boost strategy** and how GM or an
+This is a good hook for talking about **boost strategy** and how an OEM or an
 F1 customer might explore intake‑side changes without rewriting the core
 solver.
 
@@ -691,7 +673,7 @@ runroot python -m simulator.tools.tool_bsfc_map_epa \
   --csv simulator/out/e85_bsfc_map_epa_points.csv
 ```
 
-# ICE Simulator – Turbocharger Add‑On (Mean‑Value v0)
+# vICE – Turbocharger Add‑On (Mean‑Value v0)
 
 This add‑on bolts a **very simple turbocharger model** onto the existing
 `simulator` package *without* touching your core combustion / BSFC code.
@@ -985,3 +967,5 @@ rg -n "yaml" simulator
 rg -n "JetSurf2" simulator
 rg -n "Blanquart2018" simulator
 rg -n "Methanol|methanol" simulator
+rg -n "ICE Simulator" simulator
+rg -n "GM" simulator

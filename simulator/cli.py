@@ -7,7 +7,7 @@ from . import apis
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="simulator",
-        description="ICE Simulator – GM-style single-cylinder engine",
+        description="vICE – Virtual Internal Combustion Engine Simulator",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "GM-style SI engine – phi = 0.9",
+    "title": "SI engine – phi = 0.9",
     "description": "Single-cylinder, four-stroke SI engine at equivalence ratio 0.9 (lean).",
     "units": "SI (m, kg, s, K, Pa)"
   },
