@@ -11,7 +11,7 @@ Outputs default to `simulator/out/`.
 >
 > The sections below assume you have a `runroot` helper set up.
 
-## -1) One-time session bootstrap (ICE-aware)
+#### -1) One-time session bootstrap (ICE-aware)
 
 Define a small helper so you can run commands from anywhere inside the repo:
 
@@ -41,14 +41,14 @@ runroot() { ( cd "$(_sim_root)" && "$@" ); }
 runroot mkdir -p simulator/out simulator/in
 ```
 
-## 0) Help
+#### 0) Help
 
 ```bash
 runroot python -m simulator.cli \
   --help
 ```
 
-## 1) Text UI (Simulator console front-end)
+#### 1) Text UI (Simulator console front-end)
 
 Interactive menu: list inputs, run a case, plot indicator diagram.
 
@@ -56,7 +56,7 @@ Interactive menu: list inputs, run a case, plot indicator diagram.
 runroot python -m simulator.main
 ```
 
-## 2) List available JSON input cases
+#### 2) List available JSON input cases
 
 ```bash
 runroot python -m simulator.cli list-inputs
@@ -68,7 +68,7 @@ You should see paths under `simulator/in/`, e.g.:
 - `simulator/in/sample_si_methanol_engine.json`
 - `simulator/in/template_si_engine.json` (after step 3)
 
-## 3) Seed a template SI engine input
+#### 3) Seed a template SI engine input
 
 One-time helper: write a generic SI case you can clone/edit.
 
@@ -80,9 +80,9 @@ This creates:
 
 - `simulator/in/template_si_engine.json`
 
-## 4) Baseline gasoline SI case (single cylinder) — run + plot
+#### 4) Baseline gasoline SI case (single cylinder) — run + plot
 
-Run one 4‑stroke cycle using the sample gasoline config, then plot the P–V loop.
+### 4.1) Run one 4‑stroke cycle using the sample gasoline config, 
 
 ```bash
 runroot python -m simulator.cli run \
@@ -91,23 +91,25 @@ runroot python -m simulator.cli run \
   --cycles 1
 ```
 
+### 4.2) then plot the P–V loop.
+
 ```bash
 runroot python -m simulator.cli plot \
   --result simulator/out/sample_si_engine_out.json
 ```
 
-Or using the lower-level tool:
+### 4.3) Or using the lower-level tool:
 
 ```bash
 runroot python -m simulator.tools.tool_indicator_from_result simulator/out/sample_si_engine_out.json
 ```
 
-## 5) Methanol comparison (same geometry, different fuel)
+#### 5) Methanol comparison (same geometry, different fuel)
 
 Assuming you have a methanol case in `simulator/in/sample_si_methanol_engine.json`
 (same geometry, `fuel_id: "methanol"`):
 
-# Step 1 - Solve - Indicator Diagram
+### 5.1) Step 1 - Solve - Indicator Diagram
 
 ```bash
 runroot python -m simulator.cli run \
@@ -116,7 +118,7 @@ runroot python -m simulator.cli run \
   --cycles 1
 ```
 
-# Step 2 - Plot - Indicator Diagram
+### 5.2) Step 2 - Plot - Indicator Diagram
 
 ```bash
 runroot python -m simulator.cli plot \
@@ -130,9 +132,9 @@ Compare:
 - indicated / brake power and torque,
 driven by different LHV and AFR.
 
-## 6) Multi‑cycle run (stability check / repeated P–V loops)
+#### 6) Multi‑cycle run (stability check / repeated P–V loops)
 
-Run several cycles in one shot to check repeatability of the indicator diagram
+### 6.1) Run several cycles in one shot to check repeatability of the indicator diagram
 and integrated work.
 
 ```bash
@@ -141,6 +143,8 @@ runroot python -m simulator.cli run \
   --outfile simulator/out/sample_si_engine_3cyc_out.json \
   --cycles 3
 ```
+
+### 6.2) Plot the multi-cycle data
 
 ```bash
 runroot python -m simulator.cli plot \
@@ -151,7 +155,7 @@ The `SimulationResult` still reports IMEP / power / torque based on a
 **per‑cycle** normalization; total work is internally divided by the number
 of simulated cycles.
 
-## 7) Cylinder‑count effect — 1‑cyl vs 4‑cyl at fixed IMEP
+#### 7) Cylinder‑count effect — 1‑cyl vs 4‑cyl at fixed IMEP
 
 Use the same per‑cylinder thermodynamics but vary `num_cylinders` to show
 how **total** brake power / torque scale with cylinder count, while
@@ -181,7 +185,7 @@ This is a nice “so‑what” demo: **same IMEP**, but total power/torque scale
 with cylinder count, which is exactly what you’d discuss in a performance
 / architecture review.
 
-## 8) Friction presets — passenger vs performance vs F1‑ish
+#### 8) Friction presets — passenger vs performance vs F1‑ish
 
 If you’re using the FMEP presets version of `core.py` with `friction_mode`
 support (`"passenger"`, `"performance"`, `"f1"`, `"generic"`), you can
@@ -219,7 +223,7 @@ performance vs F1‑ish) eats into BMEP and Pb.
 If `friction_mode` isn’t wired yet on your branch, this block simply
 needs the updated `core.py` that defines it.
 
-## 9) Intake‑pressure sweep (boost / operating‑point study)
+#### 9) Intake‑pressure sweep (boost / operating‑point study)
 
 Use the small design helper to sweep intake pressure and see how BMEP /
 brake power respond — a mini performance map slice.
@@ -252,7 +256,7 @@ This is a good hook for talking about **boost strategy** and how an OEM or an
 F1 customer might explore intake‑side changes without rewriting the core
 solver.
 
-## 10) Quick JSON peek (scalar sanity check)
+#### 10) Quick JSON peek (scalar sanity check)
 
 To quickly inspect the scalar fields (IMEP, BMEP, power, torque) from a
 previous run:
