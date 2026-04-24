@@ -652,6 +652,22 @@ runroot python -m simulator.tools.tool_cycle_thermo_plot \
   --out-html simulator/out/si_phi0.9_cycle_thermo.html
 ```
 
+#### T10.1) Cycle - P, T vs Crank Angle
+
+```bash
+runroot python -m simulator.tools.tool_cycle_thermo_plot \
+  --infile simulator/out/si_phi1.0_out.json \
+  --out-html simulator/out/si_phi1.0_cycle_thermo.html
+```
+
+#### T10.2) Cycle - P, T vs Crank Angle
+
+```bash
+runroot python -m simulator.tools.tool_cycle_thermo_plot \
+  --infile simulator/out/si_phi1.1_out.json \
+  --out-html simulator/out/si_phi1.1_cycle_thermo.html
+```
+
 #### T11) Default Baby F1 engine (gasoline) - Bsfc and Brake Power Map - BMEP vs Speed
 
 ```bash
