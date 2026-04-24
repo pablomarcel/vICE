@@ -129,8 +129,7 @@ Compare:
 
 - peak pressure,
 - IMEP/BMEP,
-- indicated / brake power and torque,
-driven by different LHV and AFR.
+- indicated / brake power and torque, driven by different LHV and AFR.
 
 #### 6) Multi‑cycle run (stability check / repeated P–V loops)
 
@@ -417,7 +416,7 @@ for r in res:
 PY
 ```
 
-## X) BSFC tables & plots from virtual dyno outputs
+#### 11) BSFC tables & plots from virtual dyno outputs
 
 # Build CSV tables and Plotly HTML plots from:
 #   - simulator/out/full_load_N_*.json
@@ -429,37 +428,37 @@ PY
 #   - simulator/out/bsfc_full_load_plot.html
 #   - simulator/out/bsfc_pboost_plot.html
 
-# Bsfc vs BMEP
+### 11.1) Bsfc vs BMEP
 
 ```bash
 runroot python -m simulator.tools.tool_bsfc_table
 ```
 
-# η_th contour maps - intake pressure vs RPM
+### 11.2) η_th contour maps - intake pressure vs RPM
 
 ```bash
 runroot python -m simulator.tools.tool_bsfc_contours
 ```
 
-# BSFC vs RPM - Compression Ratio Sweep
+### 11.3) BSFC vs RPM - Compression Ratio Sweep
 
 ```bash
 runroot python -m simulator.tools.tool_bsfc_vs_speed_rc
 ```
 
-# BSFC vs Equivalence Ratio - Compression Ratio Sweep
+### 11.4) BSFC vs Equivalence Ratio - Compression Ratio Sweep
 
 ```bash
 runroot python -m simulator.tools.tool_bsfc_vs_phi_rc
 ```
 
-# BSFC vs Displacement
+### 11.5) BSFC vs Displacement
 
 ```bash
 runroot python -m simulator.tools.tool_bsfc_vs_displacement
 ```
 
-## BSFC new commands
+#### 11.6) BSFC new commands
 
 ```bash
 runroot python -m simulator.cli run \
@@ -479,7 +478,7 @@ runroot python -m simulator.cli run \
   --outfile simulator/out/si_phi1.1_out.json
 ```
 
-# Full BSFC vs phi map for rc = 8..15
+### 11.7) Full BSFC vs phi map for rc = 8..15
 
 ```bash
 runroot python -m simulator.tools.bsfc_sweep_phi \
@@ -502,7 +501,7 @@ runroot python -m simulator.tools.bsfc_sweep_phi \
 runroot python -c 'import cantera; print(cantera.__version__)'
 ```
 
-## T1) Ideal adiabatic flame vs φ (gasoline, toy cp model)
+#### T1) Ideal adiabatic flame vs φ (gasoline, toy cp model)
 
 ```bash
 runroot python -m simulator.thermo.tools.equilibrium_flame \
@@ -517,7 +516,7 @@ runroot python -m simulator.thermo.tools.equilibrium_flame \
   --out-html simulator/out/flame_gasoline_phi_ideal.html
 ```
 
-## T2) Cantera HP-equilibrium adiabatic flame vs φ (methane, gri30)
+#### T2) Cantera HP-equilibrium adiabatic flame vs φ (methane, gri30)
 
 ```bash
 runroot python -m simulator.thermo.tools.equilibrium_flame \
@@ -534,7 +533,7 @@ runroot python -m simulator.thermo.tools.equilibrium_flame \
   --out-html simulator/out/flame_methane_phi_cantera.html
 ```
 
-# Ideal backend, gasoline vs methanol vs E85 - Adiabatic Flame Temperature
+#### T3) Ideal backend, gasoline vs methanol vs E85 - Adiabatic Flame Temperature
 
 ```bash
 runroot python -m simulator.thermo.tools.equilibrium_flame_compare \
@@ -549,7 +548,7 @@ runroot python -m simulator.thermo.tools.equilibrium_flame_compare \
   --out-html simulator/out/flame_compare_ideal.html
 ```
 
-# Ideal backend, gasoline vs methanol vs E85 vs Ethanol - Adiabatic Flame Temperature
+#### T4) Ideal backend, gasoline vs methanol vs E85 vs Ethanol - Adiabatic Flame Temperature
 
 ```bash
 runroot python -m simulator.thermo.tools.equilibrium_flame_compare \
@@ -564,7 +563,7 @@ runroot python -m simulator.thermo.tools.equilibrium_flame_compare \
   --out-html simulator/out/flame_compare_ideal_gas_meth_e85_etoh.html
 ```
 
-# Cantera Backend, Methane vs Propane - Adiabatic Flame Temperature vs Equivalence Ratio
+#### T5) Cantera Backend, Methane vs Propane - Adiabatic Flame Temperature vs Equivalence Ratio
 
 ```bash
 runroot python -m simulator.thermo.tools.equilibrium_flame_compare \
@@ -581,7 +580,7 @@ runroot python -m simulator.thermo.tools.equilibrium_flame_compare \
   --out-html simulator/out/flame_compare_cantera.html
 ```
 
-# Cantera Backend, Methane vs Hydrogen - Adiabatic Flame Temperature vs Equivalence Ratio
+#### T6) Cantera Backend, Methane vs Hydrogen - Adiabatic Flame Temperature vs Equivalence Ratio
 
 ```bash
 runroot python -m simulator.thermo.tools.equilibrium_flame_compare \
@@ -598,7 +597,7 @@ runroot python -m simulator.thermo.tools.equilibrium_flame_compare \
   --out-html simulator/out/flame_compare_cantera_CH4_H2.html
 ```
 
-# Cantera backend, Methane vs Carbon Monoxide - Adiabatic Flame Temperature vs Equivalence Ratio
+#### T7) Cantera backend, Methane vs Carbon Monoxide - Adiabatic Flame Temperature vs Equivalence Ratio
 
 ```bash
 runroot python -m simulator.thermo.tools.equilibrium_flame_compare \
@@ -615,7 +614,7 @@ runroot python -m simulator.thermo.tools.equilibrium_flame_compare \
   --out-html simulator/out/flame_compare_cantera_CH4_CO.html
 ```
 
-# Cantera backend, Hydrogen vs Carbon Monoxide - Adiabatic Flame Temperature vs Equivalence Ratio
+#### T8) Cantera backend, Hydrogen vs Carbon Monoxide - Adiabatic Flame Temperature vs Equivalence Ratio
 
 ```bash
 runroot python -m simulator.thermo.tools.equilibrium_flame_compare \
@@ -632,7 +631,7 @@ runroot python -m simulator.thermo.tools.equilibrium_flame_compare \
   --out-html simulator/out/flame_compare_cantera_H2_CO.html
 ```
 
-## Flame Summary - Bsfc vs RPM
+#### T9) Flame Summary - Bsfc vs RPM
 
 ```bash
 runroot python -m simulator.tools.tool_flame_summary \
@@ -645,7 +644,7 @@ runroot python -m simulator.tools.tool_flame_summary \
   --out-html simulator/out/flame_summary_gasoline.html
 ```
 
-# Cycle - P, T vs Crank Angle
+#### T10) Cycle - P, T vs Crank Angle
 
 ```bash
 runroot python -m simulator.tools.tool_cycle_thermo_plot \
@@ -653,13 +652,13 @@ runroot python -m simulator.tools.tool_cycle_thermo_plot \
   --out-html simulator/out/si_phi0.9_cycle_thermo.html
 ```
 
-# Default Baby F1 engine (gasoline) - Bsfc
+#### T11) Default Baby F1 engine (gasoline) - Bsfc and Brake Power Map - BMEP vs Speed
 
 ```bash
 runroot python -m simulator.tools.tool_bsfc_map_epa
 ```
 
-# Baby F1 engine (methanol) - Bsfc
+#### T12) Baby F1 engine (methanol) - Bsfc
 
 ```bash
 runroot python -m simulator.tools.tool_bsfc_map_epa \
@@ -668,7 +667,7 @@ runroot python -m simulator.tools.tool_bsfc_map_epa \
   --csv simulator/out/methanol_bsfc_map_epa_points.csv
 ```
 
-# Baby F1 engine (e85) - Bsfc
+#### T13) Baby F1 engine (e85) - Bsfc
 
 ```bash
 runroot python -m simulator.tools.tool_bsfc_map_epa \
@@ -677,7 +676,7 @@ runroot python -m simulator.tools.tool_bsfc_map_epa \
   --csv simulator/out/e85_bsfc_map_epa_points.csv
 ```
 
-# vICE – Turbocharger Add‑On (Mean‑Value v0)
+#### 12) Turbocharger Add‑On (Mean‑Value v0)
 
 This add‑on bolts a **very simple turbocharger model** onto the existing
 `simulator` package *without* touching your core combustion / BSFC code.
@@ -695,7 +694,7 @@ The idea is to give you a **framework and patterns** that match the rest
 of your app, so you can later swap in real compressor / turbine maps or
 more detailed physics.
 
-## 1. Config – new `turbo` block
+### 12.1) Config – new `turbo` block
 
 In your existing engine JSON (e.g. `simulator/in/sample_si_engine.json`)
 add an optional block:
@@ -744,7 +743,7 @@ Notes:
 * Nothing in your existing simulator depends on the `turbo` block, so
   current tests / runs remain unchanged until you call the new tools.
 
-## 2. New module: `simulator/turbo.py`
+### 12.2 New module: `simulator/turbo.py`
 
 This module implements:
 
@@ -766,13 +765,13 @@ hackable** so you can later:
 * Add a turbine map & power balance `W_t η_m = W_c`.
 * Replace the simple boost schedule with a map‑based or control‑based one.
 
-## 3. New CLI tool: `simulator.tools.turbo_match`
+### 12.3) New CLI tool: `simulator.tools.turbo_match`
 
 This CLI is patterned after your existing tools (`tool_bsfc_map_epa.py`,
 `tool_bsfc_vs_speed_rc.py`, etc.) and is meant to be run from the ICE root
 using your usual `runroot` helper.
 
-### Turbo - Compressor Matching
+### 12.4) Turbo - Compressor Matching
 
 ```bash
 runroot python -m simulator.tools.turbo_match \
@@ -801,7 +800,7 @@ This will:
      * y = pressure ratio
      * markers coloured by RPM
 
-## 4. Extending this skeleton
+### 12.4) Extending this skeleton
 
 Once this is wired and producing sensible trends, you can iterate:
 
@@ -818,9 +817,7 @@ Once this is wired and producing sensible trends, you can iterate:
 This v0 keeps all turbo logic outside your existing combustion / cycle
 model, so you can freely refactor it without touching core tests.
 
-# Turbochargers
-
-## Turbo matching
+### 12.5) Turbo matching
 
 ```bash
 runroot python -m simulator.tools.tool_turbo_match_opline \
@@ -831,7 +828,7 @@ runroot python -m simulator.tools.tool_turbo_match_opline \
   --N-step 500
 ```
 
-# Turbo matching - 4cyl
+### 12.6) Turbo matching - 4cyl
 
 ```bash
 runroot python -m simulator.tools.tool_turbo_match_opline \
@@ -842,7 +839,7 @@ runroot python -m simulator.tools.tool_turbo_match_opline \
   --N-step 500
 ```
 
-# Turbo matching - 8cyl
+### 12.7) Turbo matching - 8cyl
 
 ```bash
 runroot python -m simulator.tools.tool_turbo_match_opline \
@@ -853,7 +850,7 @@ runroot python -m simulator.tools.tool_turbo_match_opline \
   --N-step 500
 ```
 
-# Turbo matching - 12cyl
+### 12.8) Turbo matching - 12cyl
 
 ```bash
 runroot python -m simulator.tools.tool_turbo_match_opline \
@@ -864,7 +861,7 @@ runroot python -m simulator.tools.tool_turbo_match_opline \
   --N-step 500
 ```
 
-## Compressors
+#### 13) Compressors
 
 ```bash
 runroot python -m simulator.tools.tool_compressor_map_efr71 \
@@ -873,8 +870,7 @@ runroot python -m simulator.tools.tool_compressor_map_efr71 \
   --out-html simulator/out/compressor_efr71_map.html
 ```
 
-  # optional:
-  # --opline-csv simulator/out/turbo_match_opline.csv
+### 13.1) optional: --opline-csv simulator/out/turbo_match_opline.csv
 
 ```bash
 runroot python -m simulator.tools.tool_compressor_map_efr71 \
@@ -884,7 +880,7 @@ runroot python -m simulator.tools.tool_compressor_map_efr71 \
   --out-html simulator/out/compressor_efr71_map.html
 ```
 
-# Compressor matching - 4cyl
+### 13.2) Compressor matching - 4cyl
 
 ```bash
 runroot python -m simulator.tools.tool_compressor_map_efr71 \
@@ -894,7 +890,7 @@ runroot python -m simulator.tools.tool_compressor_map_efr71 \
   --out-html simulator/out/compressor_efr71_map_4cyl.html
 ```
 
-# Compressor matching - 8cyl
+### 13.3) Compressor matching - 8cyl
 
 ```bash
 runroot python -m simulator.tools.tool_compressor_map_efr71 \
@@ -904,7 +900,7 @@ runroot python -m simulator.tools.tool_compressor_map_efr71 \
   --out-html simulator/out/compressor_efr71_map_8cyl.html
 ```
 
-# Compressor matching - 12cyl
+### 13.4) Compressor matching - 12cyl
 
 ```bash
 runroot python -m simulator.tools.tool_compressor_map_efr71 \
@@ -914,9 +910,9 @@ runroot python -m simulator.tools.tool_compressor_map_efr71 \
   --out-html simulator/out/compressor_efr71_map_12cyl.html
 ```
 
-## Turbos
+#### 14) Turbos
 
-# Plot
+### 14.1) Plot
 
 ```bash
 runroot python -m simulator.tools.tool_turbine_map_gt4088 \
@@ -927,7 +923,7 @@ runroot python -m simulator.tools.tool_turbine_map_gt4088 \
   # optional:
   # --opline-csv simulator/out/turbine_turbine_opline.csv
 
-# With Engine Operating Line
+### 14.2) With Engine Operating Line
 
 ```bash
 runroot python -m simulator.tools.tool_turbine_map_gt4088 \
@@ -936,7 +932,7 @@ runroot python -m simulator.tools.tool_turbine_map_gt4088 \
   --out-html simulator/out/turbine_gt4088_map.html
 ```
 
-# Turbo matching - 4cyl
+### 14.3) Turbo matching - 4cyl
 
 ```bash
 runroot python -m simulator.tools.tool_turbine_map_gt4088 \
@@ -945,7 +941,7 @@ runroot python -m simulator.tools.tool_turbine_map_gt4088 \
   --out-html simulator/out/turbine_gt4088_map_4cyl.html
 ```
 
-# Turbo matching - 8cyl
+### 14.4) Turbo matching - 8cyl
 
 ```bash
 runroot python -m simulator.tools.tool_turbine_map_gt4088 \
@@ -954,7 +950,7 @@ runroot python -m simulator.tools.tool_turbine_map_gt4088 \
   --out-html simulator/out/turbine_gt4088_map_8cyl.html
 ```
 
-# Turbo matching - 12cyl
+### 14.5) Turbo matching - 12cyl
 
 ```bash
 runroot python -m simulator.tools.tool_turbine_map_gt4088 \
@@ -963,7 +959,7 @@ runroot python -m simulator.tools.tool_turbine_map_gt4088 \
   --out-html simulator/out/turbine_gt4088_map_12cyl.html
 ```
 
-#### RipGrep
+#### 15) RipGrep
 
 rg -n "a|b|c|d" simulator
 rg -n "a" simulator/b
