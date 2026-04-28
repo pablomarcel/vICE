@@ -10,6 +10,44 @@ It is designed for the kind of workflow engine people actually use when explorin
 
 ---
 
+# vICE
+
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-38BDF8.svg)](https://pablomarcel.github.io/vICE/)
+[![Build & Publish Docs](https://github.com/pablomarcel/vICE/actions/workflows/pages.yml/badge.svg)](https://github.com/pablomarcel/vICE/actions/workflows/pages.yml)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+**Virtual internal combustion engine simulation, cycle analysis, BSFC studies, thermochemistry, and turbocharger matching workflows in Python.**
+
+vICE is a Python-first virtual internal combustion engine simulator for 0-D cycle simulation, crank-angle-resolved pressure and temperature traces, brake performance metrics, BSFC sweeps, thermochemistry utilities, and turbocharger/compressor-map workflows. It is built as an open, scriptable, extensible platform around JSON inputs, CLI tools, Plotly outputs, and Sphinx documentation.
+
+In plain terms: **vICE is an open engineering workbench for internal-combustion-engine simulation and performance exploration in Python.**
+
+---
+
+## Documentation
+
+The live documentation is published with Sphinx and GitHub Pages:
+
+**https://pablomarcel.github.io/vICE/**
+
+The documentation site includes API references for the main vICE simulator application layer, engine-cycle core, fuel-property utilities, design sweeps, turbocharger matching tools, thermochemistry modules, reactor utilities, plotting helpers, and supporting command-line workflows.
+
+Useful documentation links:
+
+- [vICE documentation portal](https://pablomarcel.github.io/vICE/)
+- [API Reference](https://pablomarcel.github.io/vICE/api.html)
+- [GitHub Pages deployment workflow](.github/workflows/pages.yml)
+
+For local documentation builds:
+
+```bash
+python -m simulator.cli sphinx-skel
+make -C simulator/docs html
+```
+
+---
+
 ## Why vICE exists
 
 Most engine simulation tools are either too simplified to be useful, too locked into a GUI, or too heavy for quick experimentation. vICE sits in the middle:
