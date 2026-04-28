@@ -1,0 +1,50 @@
+{
+  "name": "Mock Panther diesel centrifugal coolant pump",
+  "description": "Preliminary mock coolant-pump curve for vICE exploratory analysis. Replace with supplier curves when available.",
+  "pump_type": "centrifugal",
+  "reference_speed_rpm": 3000.0,
+  "flow_unit": "gpm",
+  "head_unit": "ft",
+  "specific_gravity": 1.03,
+  "valid_flow_min": 0.0,
+  "valid_flow_max": 120.0,
+  "bep_flow": 72.0,
+  "bep_head": 38.0,
+  "curves": {
+    "head": {
+      "kind": "points",
+      "points": [
+        [0.0, 70.0],
+        [20.0, 66.0],
+        [40.0, 58.0],
+        [60.0, 46.0],
+        [72.0, 38.0],
+        [90.0, 25.0],
+        [110.0, 10.0],
+        [120.0, 2.0]
+      ]
+    },
+    "efficiency": {
+      "kind": "points",
+      "points": [
+        [15.0, 0.32],
+        [35.0, 0.52],
+        [55.0, 0.65],
+        [72.0, 0.70],
+        [90.0, 0.62],
+        [110.0, 0.45]
+      ]
+    },
+    "npshr": {
+      "kind": "points",
+      "points": [
+        [20.0, 2.0],
+        [40.0, 3.0],
+        [60.0, 4.5],
+        [72.0, 5.5],
+        [90.0, 8.0],
+        [110.0, 12.0]
+      ]
+    }
+  }
+}

@@ -19,6 +19,12 @@ Commands
 ``plot``
     Generate a Plotly P-V indicator diagram from a simulation result JSON.
 
+``pump-match-system``
+    Match a centrifugal pump curve to a system curve at one pump speed.
+
+``pump-rpm-sweep``
+    Sweep pump operating points across an engine RPM range.
+
 ``sphinx-skel``
     Generate a conservative Sphinx documentation skeleton under
     ``simulator/docs`` by default.
@@ -56,9 +62,15 @@ if __package__ in (None, ""):
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     if repo_root not in sys.path:
         sys.path.insert(0, repo_root)
-    from simulator import apis  # type: ignore
-else:
-    from . import apis
+
+
+def _load_apis():
+    """Lazy-load simulator.apis so pump-only CLI commands avoid optional imports."""
+    if __package__ in (None, ""):
+        from simulator import apis as _apis  # type: ignore
+    else:
+        from . import apis as _apis
+    return _apis
 
 
 # ---------------------------------------------------------------------------
@@ -120,6 +132,14 @@ _MODULES: tuple[str, ...] = (
     "simulator.io",
     "simulator.turbo",
     "simulator.utils",
+    # Pump analysis layer
+    "simulator.pumps",
+    "simulator.pumps.affinity",
+    "simulator.pumps.cavitation",
+    "simulator.pumps.curves",
+    "simulator.pumps.power",
+    "simulator.pumps.system_curve",
+    "simulator.pumps.water_pump",
     # Thermochemistry layer
     "simulator.thermo.equilibrium",
     "simulator.thermo.reactor0d",
@@ -371,6 +391,42 @@ def build_parser() -> argparse.ArgumentParser:
         help="Output HTML path (default: next to result JSON)",
     )
 
+    pump_match_p = sub.add_parser(
+        "pump-match-system",
+        help="Match a centrifugal pump curve to a system curve at one pump speed.",
+    )
+    pump_match_p.add_argument("--pump", required=True, help="Path to pump curve JSON")
+    pump_match_p.add_argument("--system", required=True, help="Path to system curve JSON")
+    pump_match_p.add_argument("--pump-rpm", type=float, required=True, help="Pump speed [rpm]")
+    pump_match_p.add_argument("--engine-rpm", type=float, help="Optional engine speed metadata [rpm]")
+    pump_match_p.add_argument("--out-json", required=True, help="Output JSON path")
+    pump_match_p.add_argument("--out-csv", help="Optional one-row CSV output path")
+    pump_match_p.add_argument(
+        "--npsh-margin-ft",
+        type=float,
+        default=3.0,
+        help="Required NPSH margin used for status flagging [ft]",
+    )
+
+    pump_sweep_p = sub.add_parser(
+        "pump-rpm-sweep",
+        help="Run a centrifugal water-pump operating-point sweep vs engine RPM.",
+    )
+    pump_sweep_p.add_argument("--pump", required=True, help="Path to pump curve JSON")
+    pump_sweep_p.add_argument("--system", required=True, help="Path to system curve JSON")
+    pump_sweep_p.add_argument("--engine-rpm-min", type=float, required=True, help="Minimum engine speed [rpm]")
+    pump_sweep_p.add_argument("--engine-rpm-max", type=float, required=True, help="Maximum engine speed [rpm]")
+    pump_sweep_p.add_argument("--engine-rpm-step", type=float, required=True, help="Engine speed step [rpm]")
+    pump_sweep_p.add_argument("--pulley-ratio", type=float, default=1.0, help="pump_rpm / engine_rpm")
+    pump_sweep_p.add_argument("--out-json", required=True, help="Output JSON path")
+    pump_sweep_p.add_argument("--out-csv", help="Optional CSV table output path")
+    pump_sweep_p.add_argument(
+        "--npsh-margin-ft",
+        type=float,
+        default=3.0,
+        help="Required NPSH margin used for status flagging [ft]",
+    )
+
     sphinx_p = sub.add_parser(
         "sphinx-skel",
         help="Create a conservative Sphinx docs skeleton for GitHub Pages.",
@@ -398,12 +454,88 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(list(argv) if argv is not None else None)
 
+    if args.command == "pump-match-system":
+        from simulator.pumps import (
+            CentrifugalWaterPump,
+            QuadraticSystemCurve,
+            SuctionState,
+            load_system_json,
+            match_system,
+            write_points_csv,
+            write_points_json,
+        )
+
+        pump = CentrifugalWaterPump.from_json(args.pump)
+        system_data = load_system_json(args.system)
+        system = QuadraticSystemCurve.from_dict(system_data)
+        suction = SuctionState.from_dict(system_data.get("suction"))
+        point = match_system(
+            pump,
+            system,
+            args.pump_rpm,
+            suction=suction,
+            engine_speed_rpm=args.engine_rpm,
+            npsh_margin_required_ft=args.npsh_margin_ft,
+        )
+        payload = {
+            "kind": "pump_match_system",
+            "pump": pump.to_summary_dict(),
+            "system": system.to_dict(),
+            "suction": suction.to_dict(),
+            "point": point.to_dict(),
+        }
+        write_points_json(args.out_json, payload)
+        if args.out_csv:
+            write_points_csv(args.out_csv, [point])
+        print(args.out_json)
+        return 0
+
+    if args.command == "pump-rpm-sweep":
+        from simulator.pumps import (
+            CentrifugalWaterPump,
+            QuadraticSystemCurve,
+            SuctionState,
+            load_system_json,
+            rpm_sweep,
+            write_points_csv,
+            write_points_json,
+        )
+
+        pump = CentrifugalWaterPump.from_json(args.pump)
+        system_data = load_system_json(args.system)
+        system = QuadraticSystemCurve.from_dict(system_data)
+        suction = SuctionState.from_dict(system_data.get("suction"))
+        points = rpm_sweep(
+            pump,
+            system,
+            engine_rpm_min=args.engine_rpm_min,
+            engine_rpm_max=args.engine_rpm_max,
+            engine_rpm_step=args.engine_rpm_step,
+            pulley_ratio=args.pulley_ratio,
+            suction=suction,
+            npsh_margin_required_ft=args.npsh_margin_ft,
+        )
+        payload = {
+            "kind": "pump_rpm_sweep",
+            "pump": pump.to_summary_dict(),
+            "system": system.to_dict(),
+            "suction": suction.to_dict(),
+            "pulley_ratio": args.pulley_ratio,
+            "points": [p.to_dict() for p in points],
+        }
+        write_points_json(args.out_json, payload)
+        if args.out_csv:
+            write_points_csv(args.out_csv, points)
+        print(args.out_json)
+        return 0
+
     if args.command == "sphinx-skel":
         out_dir = create_sphinx_skeleton(args.dest, force=bool(args.force))
         print(str(out_dir))
         return 0
 
     if args.command == "run":
+        apis = _load_apis()
         req = apis.RunRequest(
             verb="run-sim",
             infile=args.config,
@@ -416,6 +548,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     if args.command == "list-inputs":
+        apis = _load_apis()
         res = apis.run(apis.RunRequest(verb="list-inputs"))
         if not res.ok:
             parser.error(res.reason)
@@ -424,6 +557,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     if args.command == "plot":
+        apis = _load_apis()
         params = {"result_path": args.result}
         if args.html:
             params["out_html"] = args.html

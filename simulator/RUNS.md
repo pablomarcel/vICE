@@ -995,3 +995,86 @@ python -m simulator.cli sphinx-skel simulator/docs
 python -m sphinx -b html docs docs/_build/html
 open docs/_build/html/index.html
 sphinx-autobuild docs docs/_build/html
+
+#### 17) Pumps
+
+# RUNS — vICE Pumps Add-On
+
+Run these commands from the repository root that contains `simulator/`.
+
+## 17.1) One-time folders
+
+```bash
+mkdir -p simulator/pumps/out
+```
+
+## 17.2) Frank White Example 11.6 — single operating point
+
+This validation case solves the textbook-style intersection:
+
+```text
+H_pump = 490 - 0.26 Q^2
+H_system = 120 + 1.335 Q^2
+```
+
+where `Q` is in `1000 gal/min` and `H` is in `ft`.
+
+```bash
+runroot python -m simulator.cli pump-match-system \
+  --pump simulator/pumps/data/pump_curves/frank_white_32in_1170rpm.json \
+  --system simulator/pumps/in/water_pump_frank_white_example_11_6.json \
+  --pump-rpm 1170 \
+  --out-json simulator/pumps/out/frank_white_example_11_6_match.json \
+  --out-csv simulator/pumps/out/frank_white_example_11_6_match.csv
+```
+
+Expected result: approximately `Q = 15.2 x 1000 gal/min` and `H = 430 ft`.
+
+## 17.3) Mock Panther diesel coolant-pump sweep
+
+```bash
+runroot python -m simulator.cli pump-rpm-sweep \
+  --pump simulator/pumps/data/pump_curves/mock_panther_coolant_pump.json \
+  --system simulator/pumps/in/cooling_panther_mock.json \
+  --engine-rpm-min 600 \
+  --engine-rpm-max 3600 \
+  --engine-rpm-step 300 \
+  --pulley-ratio 1.20 \
+  --out-json simulator/pumps/out/panther_coolant_sweep.json \
+  --out-csv simulator/pumps/out/panther_coolant_sweep.csv
+```
+
+The output table includes:
+
+```text
+engine_speed_rpm, pump_speed_rpm, flow, head, efficiency, water_hp,
+brake_hp, brake_kw, NPSHA, NPSHR, NPSH margin, BEP flow, BEP ratio, status
+```
+
+## 17.4) Quick CSV preview
+
+```bash
+runroot python - << 'PY'
+from pathlib import Path
+import csv
+path = Path('simulator/pumps/out/panther_coolant_sweep.csv')
+with path.open() as f:
+    for i, row in enumerate(csv.DictReader(f)):
+        print(row)
+        if i >= 4:
+            break
+PY
+```
+
+## 17.5) Interview talking point
+
+The package is built around pump/system matching:
+
+```text
+operating point = intersection of pump head curve and system head curve
+```
+
+For a belt-driven coolant pump, pump RPM follows engine RPM through a pulley
+ratio. The centrifugal pump curve moves with the affinity laws, while the
+cooling-system curve moves when thermostat position, coolant temperature,
+restriction, pressure cap behavior, or aeration changes.

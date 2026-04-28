@@ -1,0 +1,25 @@
+{
+  "name": "Mock Panther diesel cooling circuit",
+  "description": "Turbulent-loss cooling-system curve for early package testing. Replace K and suction-loss coefficients with CFD/test-derived restriction data.",
+  "fluid": "50/50 ethylene glycol-water coolant",
+  "temperature_C": 95.0,
+  "flow_unit": "gpm",
+  "head_unit": "ft",
+  "system_curve": {
+    "model": "quadratic",
+    "static_head_ft": 0.0,
+    "k": 0.0075,
+    "exponent": 2.0,
+    "flow_unit": "gpm",
+    "head_unit": "ft"
+  },
+  "suction": {
+    "absolute_pressure_kPa": 145.0,
+    "vapor_pressure_kPa": 84.0,
+    "rho_kg_per_m3": 1030.0,
+    "suction_velocity_m_per_s": 1.8,
+    "suction_elevation_m": 0.0,
+    "suction_losses_m": 0.6,
+    "suction_loss_k_ft_per_flow2": 0.0002
+  }
+}

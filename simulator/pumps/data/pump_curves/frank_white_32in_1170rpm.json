@@ -1,0 +1,40 @@
+{
+  "name": "Frank White Example 11.6 - 32 in centrifugal pump",
+  "description": "Textbook mock curve fitted as H = 490 - 0.26 Q^2, where Q is in 1000 gal/min and H is in ft, at 1170 rpm.",
+  "source_note": "Mock/digitized textbook-style data for solver validation, not supplier design data.",
+  "pump_type": "centrifugal",
+  "reference_speed_rpm": 1170.0,
+  "flow_unit": "1000_gal_per_min",
+  "head_unit": "ft",
+  "specific_gravity": 1.0,
+  "valid_flow_min": 0.0,
+  "valid_flow_max": 25.0,
+  "bep_flow": 20.0,
+  "bep_head": 386.0,
+  "curves": {
+    "head": {
+      "kind": "polynomial",
+      "coefficients_desc": [-0.26, 0.0, 490.0]
+    },
+    "efficiency": {
+      "kind": "points",
+      "points": [
+        [8.0, 0.55],
+        [12.0, 0.72],
+        [15.2, 0.82],
+        [20.0, 0.86],
+        [24.0, 0.76]
+      ]
+    },
+    "npshr": {
+      "kind": "points",
+      "points": [
+        [8.0, 8.0],
+        [12.0, 10.0],
+        [16.0, 14.0],
+        [20.0, 20.0],
+        [24.0, 30.0]
+      ]
+    }
+  }
+}

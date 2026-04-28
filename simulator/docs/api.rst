@@ -103,6 +103,69 @@ simulator.utils
    :show-inheritance:
 
 
+simulator.pumps
+~~~~~~~~~~~~~~~
+
+.. automodule:: simulator.pumps
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+simulator.pumps.affinity
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: simulator.pumps.affinity
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+simulator.pumps.cavitation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: simulator.pumps.cavitation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+simulator.pumps.curves
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: simulator.pumps.curves
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+simulator.pumps.power
+~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: simulator.pumps.power
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+simulator.pumps.system_curve
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: simulator.pumps.system_curve
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+simulator.pumps.water_pump
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: simulator.pumps.water_pump
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 Thermochemistry Core
 --------------------
 
