@@ -1,23 +1,9 @@
-# vICE — Virtual Internal Combustion Engine Simulator
-
-**vICE** is a Python-first virtual internal combustion engine simulator for spark-ignition engine studies, indicator diagrams, virtual dyno sweeps, BSFC maps, combustion metrics, adiabatic flame temperature studies, and early turbocharger matching.
-
-It is designed for the kind of workflow engine people actually use when exploring concepts: edit a JSON engine file, run a case from the CLI, generate a result JSON, then build plots and tables from that result. The simulator is intentionally scriptable, inspectable, and easy to extend.
-
-<p align="center">
-  <em>0-D cycle simulation, P-V diagrams, dyno-style sweeps, BSFC maps, flame-temperature tools, and turbo matching in one practical Python package.</em>
-</p>
-
----
-
-# vICE
+# vICE — Virtual Internal Combustion Engine
 
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-38BDF8.svg)](https://pablomarcel.github.io/vICE/)
 [![Build & Publish Docs](https://github.com/pablomarcel/vICE/actions/workflows/pages.yml/badge.svg)](https://github.com/pablomarcel/vICE/actions/workflows/pages.yml)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-
-**Virtual internal combustion engine simulation, cycle analysis, BSFC studies, thermochemistry, and turbocharger matching workflows in Python.**
 
 vICE is a Python-first virtual internal combustion engine simulator for 0-D cycle simulation, crank-angle-resolved pressure and temperature traces, brake performance metrics, BSFC sweeps, thermochemistry utilities, and turbocharger/compressor-map workflows. It is built as an open, scriptable, extensible platform around JSON inputs, CLI tools, Plotly outputs, and Sphinx documentation.
 
