@@ -1,49 +1,29 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Dict, Mapping, Any
+from typing import Any, Dict, Mapping
 import math
 
 import numpy as np
 
 from .species import SPECIES_DB, Species, R_UNIVERSAL
 
+
 @dataclass
 class ThermoState:
     """Thermodynamic state for a gas mixture.
 
-    Two main construction paths:
+    The dataclass stores temperature, pressure, species mass fractions,
+    density, specific heats, mixture gas constant, enthalpy, and internal
+    energy for a gas mixture.
 
-    1) from_T_p_Y(T, p, Y):
-       Uses our internal NASA/species database (SPECIES_DB, Species) to
-       compute cp, cv, h, u, rho, gamma, R_mix from T, p and mass fractions.
+    Use :meth:`from_T_p_Y` when the mixture is described by species names in
+    the internal species database. Use :meth:`from_cantera` when the state is
+    supplied by a Cantera ``Solution`` object.
 
-    2) from_cantera(gas):
-       Builds the same fields from a Cantera Solution object, using
-       Cantera's own thermo. This does *not* require SPECIES_DB to
-       contain the same species – it just records the mass fractions.
-
-    Attributes
-    ----------
-    T : float
-        Temperature [K].
-    p : float
-        Pressure [Pa].
-    mass_fractions : Dict[str, float]
-        Mass fractions Y_k for each species.
-    rho : float
-        Density [kg/m³].
-    cp : float
-        Mass-based specific heat at constant pressure [J/(kg·K)].
-    cv : float
-        Mass-based specific heat at constant volume [J/(kg·K)].
-    gamma : float
-        cp / cv for the mixture (dimensionless).
-    R_mix : float
-        Gas constant of the mixture [J/(kg·K)].
-    h : float
-        Mixture specific enthalpy [J/kg].
-    u : float
-        Mixture specific internal energy [J/kg].
+    The field annotations below are intentionally left as the source of truth
+    for autodoc. Avoiding a separate ``Attributes`` section prevents duplicate
+    object-description warnings for dataclass fields in Sphinx.
     """
 
     T: float
@@ -63,10 +43,11 @@ class ThermoState:
 
     @classmethod
     def from_T_p_Y(cls, T: float, p: float, Y: Mapping[str, float]) -> "ThermoState":
-        """Build a mixture state from T, p and species mass fractions.
+        """Build a mixture state from temperature, pressure, and mass fractions.
 
-        The species keys must exist in :data:`SPECIES_DB`. Any missing
-        species are ignored; the provided fractions are renormalised.
+        Species keys must exist in :data:`SPECIES_DB`. Unknown species are
+        ignored, and the remaining positive fractions are renormalized before
+        mixture properties are computed.
         """
         # Filter to known species and renormalise
         Y_eff: Dict[str, float] = {}
@@ -125,16 +106,12 @@ class ThermoState:
 
     @classmethod
     def from_cantera(cls, gas) -> "ThermoState":
-        """Build a mixture state from a Cantera Solution object.
+        """Build a mixture state from a Cantera ``Solution`` object.
 
-        Uses Cantera's own thermo to populate cp, cv, h, u, rho.
-
-        For the mixture gas constant we use the ideal-gas identity:
-
-            R_mix = cp_mass - cv_mass
-
-        which is valid regardless of Cantera version (no need for
-        gas.gas_constant / gas.mean_molecular_weight).
+        Cantera provides the thermodynamic properties directly. The mixture
+        gas constant is computed from the ideal-gas identity
+        ``R_mix = cp_mass - cv_mass`` so the method does not depend on
+        version-specific Cantera attributes.
         """
         T = float(gas.T)
         p = float(gas.P)
@@ -172,28 +149,26 @@ class ThermoState:
     # ------------------------------------------------------------------
 
     def copy_with_T_p(self, T: float | None = None, p: float | None = None) -> "ThermoState":
-        """Return a new state with updated T and/or p, recomputing properties.
+        """Return a new state with updated temperature and/or pressure.
 
-        This *recomputes* cp, cv, etc. using the internal NASA/species
-        path (from_T_p_Y) with the existing mass_fractions.
-
-        If this ThermoState originally came from Cantera and contains
-        species not in SPECIES_DB, those species will be ignored in the
-        recomputation. In that case, prefer constructing a fresh state
-        from Cantera instead of using this method.
+        The new state is recomputed through :meth:`from_T_p_Y` using the
+        existing mass fractions. If the original state came from Cantera and
+        contains species that are not present in :data:`SPECIES_DB`, those
+        species are ignored during recomputation.
         """
         T_new = self.T if T is None else float(T)
         p_new = self.p if p is None else float(p)
         return ThermoState.from_T_p_Y(T_new, p_new, self.mass_fractions)
 
     def copy_with(self, **changes: Any) -> "ThermoState":
-        """Shallow copy with arbitrary field overrides.
+        """Return a shallow copy with arbitrary field overrides.
 
-        This does *not* recompute thermo; it simply changes fields.
-        Useful when you want to tweak e.g. p or T for diagnostics
-        without going back through NASA/Cantera.
+        This helper does not recompute thermodynamic properties. It simply
+        replaces selected dataclass fields, which is useful for diagnostics or
+        small reporting tweaks.
 
-        Example:
+        Example::
+
             state2 = state.copy_with(T=2100.0, p=4e6)
         """
         data = {

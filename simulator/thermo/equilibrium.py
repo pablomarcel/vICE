@@ -343,36 +343,48 @@ def ideal_adiabatic_flame(
     mechanism: str | None = None,
     fuel_species: str | None = None,
 ) -> IdealEquilibriumResult:
-    """Adiabatic flame at given φ, p, T with selectable backend.
+    """Compute adiabatic flame state for a selected equilibrium backend.
 
     Parameters
     ----------
-    fuel_name:
-        For backend='legacy': Species key in SPECIES_DB (e.g. 'C8H18', 'CH3OH').
-        For backend='ideal':  Fuel key in simulator.fuels.FUEL_DB
-                              (e.g. 'gasoline', 'methanol', 'e85').
-        For backend='cantera': label only (not used directly).
-    phi:
+    fuel_name : str
+        Fuel identifier used by the selected backend. For the ``legacy``
+        backend, this is a species key in ``SPECIES_DB`` such as ``C8H18``
+        or ``CH3OH``. For the ``ideal`` backend, this is a fuel key in
+        ``simulator.fuels.FUEL_DB`` such as ``gasoline``, ``methanol``, or
+        ``e85``. For the ``cantera`` backend, this value is only a label.
+    phi : float
         Equivalence ratio.
-    p:
-        Pressure [Pa].
-    T_intake:
-        Unburned-gas temperature [K].
-    afr_stoich:
-        Stoichiometric AFR by mass (used by backend='legacy'; for 'ideal'
-        we pull the AFR from simulator.fuels and this can be a consistency
-        check / unused).
-    backend:
-        'legacy'  -> original complete-combustion, no dissociation, species
-                     breakdown using SPECIES_DB.
-        'ideal'   -> simple LHV + cp energy balance using simulator.fuels.
-        'cantera' -> Cantera HP equilibrium at (p, h, composition).
-    mechanism:
-        Cantera mechanism file (e.g. 'gri30.yaml'), required for
-        backend='cantera' (defaults to 'gri30.yaml' if None).
-    fuel_species:
-        Fuel species name in the Cantera mechanism (e.g. 'CH4'),
-        required for backend='cantera'.
+    p : float
+        Pressure in pascals.
+    T_intake : float
+        Unburned-gas temperature in kelvin.
+    afr_stoich : float
+        Stoichiometric air-fuel ratio by mass. This value is used by the
+        ``legacy`` backend. The ``ideal`` backend reads the stoichiometric
+        value from ``simulator.fuels``.
+    backend : BackendType, optional
+        Equilibrium backend. Use ``legacy`` for the original complete-
+        combustion model, ``ideal`` for the LHV plus constant-cp energy
+        balance, or ``cantera`` for Cantera HP equilibrium.
+    mechanism : str or None, optional
+        Cantera mechanism file, for example ``gri30.yaml``. This is used only
+        by the ``cantera`` backend.
+    fuel_species : str or None, optional
+        Fuel species name in the Cantera mechanism, for example ``CH4``. This
+        is required when ``backend`` is ``cantera``.
+
+    Returns
+    -------
+    IdealEquilibriumResult
+        Adiabatic flame result containing flame temperature, pressure, burned
+        gas state, and species mole data.
+
+    Raises
+    ------
+    ValueError
+        If an unknown backend is requested, or if the Cantera backend is used
+        without a fuel species.
     """
     if backend == "legacy":
         return _legacy_complete_combustion_equilibrium(
