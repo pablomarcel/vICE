@@ -986,3 +986,12 @@ rg -n "Methanol|methanol" simulator
 rg -n "ICE Simulator" simulator
 rg -n "GM" simulator
 rg -n "np.trapz" simulator
+
+#### 16) Sphinx
+
+### Sphinx commands
+
+python -m simulator.cli sphinx-skel simulator/docs
+python -m sphinx -b html docs docs/_build/html
+open docs/_build/html/index.html
+sphinx-autobuild docs docs/_build/html
