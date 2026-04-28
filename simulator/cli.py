@@ -1,10 +1,348 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 from __future__ import annotations
-import argparse
-from typing import Sequence
-from . import apis
 
+"""Command-line interface for vICE / ``simulator``.
+
+The CLI is intentionally conservative: it preserves the existing engine
+simulation workflows while adding a deployment-safe Sphinx skeleton generator
+for GitHub Pages.
+
+Commands
+--------
+``run``
+    Run a cycle simulation from a JSON configuration file.
+
+``list-inputs``
+    List example JSON input files under ``simulator/in``.
+
+``plot``
+    Generate a Plotly P-V indicator diagram from a simulation result JSON.
+
+``sphinx-skel``
+    Generate a conservative Sphinx documentation skeleton under
+    ``simulator/docs`` by default.
+
+Deployment notes
+----------------
+The ``sphinx-skel`` command follows the lessons learned from the related
+engineering-tool projects:
+
+- dynamic reStructuredText heading underlines
+- conservative generated RST files
+- ``_static/.gitkeep`` and ``_templates/.gitkeep``
+- minimal Sphinx Makefile
+- importable-module filtering for autodoc
+- deploy-safe mock imports for optional scientific, plotting, and GUI deps
+
+Typical documentation command from the repository root::
+
+    python -m simulator.cli sphinx-skel
+
+Then build locally with::
+
+    make -C simulator/docs html
+"""
+
+import argparse
+import importlib.util
+import os
+import sys
+from pathlib import Path
+from typing import Sequence
+
+# ---------- Import shim so `python simulator/cli.py ...` also works ----------
+if __package__ in (None, ""):
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    if repo_root not in sys.path:
+        sys.path.insert(0, repo_root)
+    from simulator import apis  # type: ignore
+else:
+    from . import apis
+
+
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
+
+def _pkg_dir() -> Path:
+    """Return the ``simulator`` package directory."""
+    return Path(__file__).resolve().parent
+
+
+def _repo_root() -> Path:
+    """Return the repository root for the flat ``vice/simulator`` layout."""
+    return _pkg_dir().parent
+
+
+def _resolve_docs_dest(dest: str | Path | None) -> Path:
+    """Resolve a docs destination for the vICE package layout.
+
+    If no destination is supplied, the skeleton is created at
+    ``simulator/docs``. Relative destinations are normally resolved against the
+    package directory, so ``sphinx-skel docs`` also creates ``simulator/docs``.
+    If the caller explicitly passes a path beginning with ``simulator/``, it is
+    treated as repository-root-relative to avoid ``simulator/simulator/docs``.
+    """
+    if dest is None or str(dest).strip() == "":
+        return (_pkg_dir() / "docs").resolve()
+
+    p = Path(dest).expanduser()
+    if p.is_absolute():
+        return p.resolve()
+
+    parts = p.parts
+    if parts and parts[0] == "simulator":
+        return (_repo_root() / p).resolve()
+
+    return (_pkg_dir() / p).resolve()
+
+
+# ---------------------------------------------------------------------------
+# Sphinx skeleton helpers
+# ---------------------------------------------------------------------------
+
+_RST_CHARS = ("=", "-", "~", "^")
+
+# Conservative import targets for the single-package vICE documentation site.
+# Optional or future tools are safe to list because ``sphinx-skel`` filters the
+# list with ``importlib.util.find_spec`` before generating ``api.rst``.
+_MODULES: tuple[str, ...] = (
+    # Package root / application layer
+    "simulator",
+    "simulator.cli",
+    "simulator.main",
+    "simulator.app",
+    "simulator.apis",
+    "simulator.core",
+    "simulator.design",
+    "simulator.fuels",
+    "simulator.io",
+    "simulator.turbo",
+    "simulator.utils",
+    # Thermochemistry layer
+    "simulator.thermo.equilibrium",
+    "simulator.thermo.reactor0d",
+    "simulator.thermo.species",
+    "simulator.thermo.thermo_state",
+    "simulator.thermo.tools.equilibrium_flame",
+    "simulator.thermo.tools.equilibrium_flame_compare",
+    # Tool scripts / analysis workflows
+    "simulator.tools.bsfc_sweep_phi",
+    "simulator.tools.tool_bsfc_contours",
+    "simulator.tools.tool_bsfc_map_epa",
+    "simulator.tools.tool_bsfc_table",
+    "simulator.tools.tool_bsfc_vs_displacement",
+    "simulator.tools.tool_bsfc_vs_phi_rc",
+    "simulator.tools.tool_bsfc_vs_speed_rc",
+    "simulator.tools.tool_compressor_map_efr71",
+    "simulator.tools.tool_cycle_thermo_plot",
+    "simulator.tools.tool_flame_summary",
+    "simulator.tools.tool_full_load_sweep",
+    "simulator.tools.tool_generate_template_input",
+    "simulator.tools.tool_indicator_from_result",
+    "simulator.tools.tool_turbine_map_gt4088",
+    "simulator.tools.tool_turbo_match_opline",
+    "simulator.tools.turbo_match",
+)
+
+
+def _rst_heading(title: str, level: int = 0) -> str:
+    """Return a Sphinx-safe reStructuredText heading."""
+    ch = _RST_CHARS[min(max(level, 0), len(_RST_CHARS) - 1)]
+    text = str(title).strip() or "Untitled"
+    return f"{text}\n{ch * len(text)}\n"
+
+
+def _is_importable(module_name: str) -> bool:
+    """Return whether a module can be located without importing it."""
+    try:
+        return importlib.util.find_spec(module_name) is not None
+    except Exception:
+        return False
+
+
+def _write_text(path: Path, text: str, *, force: bool = False) -> bool:
+    """Write text to ``path`` if missing, or always when ``force`` is true."""
+    if path.exists() and not force:
+        return False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+    return True
+
+
+def _touch(path: Path) -> None:
+    """Create an empty file and all parent directories if needed."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.touch(exist_ok=True)
+
+
+def _generate_conf_py() -> str:
+    """Generate a conservative Sphinx ``conf.py`` for ``simulator/docs``."""
+    return '''# Generated by simulator.cli sphinx-skel
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+# simulator/docs -> repository root
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+
+project = "vICE Simulator"
+author = "Pablo Marcel Montijo"
+
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+]
+
+templates_path = ["_templates"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+html_theme = "furo"
+html_static_path = ["_static"]
+
+autodoc_typehints = "description"
+autodoc_member_order = "bysource"
+autodoc_mock_imports = [
+    "CoolProp",
+    "cantera",
+    "dearpygui",
+    "dearpygui.dearpygui",
+    "gekko",
+    "matplotlib",
+    "matplotlib.pyplot",
+    "numpy",
+    "pandas",
+    "plotly",
+    "plotly.graph_objects",
+    "plotly.subplots",
+    "pyfiglet",
+    "scipy",
+    "scipy.interpolate",
+    "scipy.linalg",
+    "scipy.optimize",
+    "sympy",
+    "yaml",
+]
+
+napoleon_google_docstring = True
+napoleon_numpy_docstring = True
+'''
+
+
+def _module_group(module_name: str) -> str:
+    """Return a readable documentation group for a module name."""
+    if module_name.startswith("simulator.thermo.tools."):
+        return "Thermochemistry Tools"
+    if module_name.startswith("simulator.thermo."):
+        return "Thermochemistry Core"
+    if module_name.startswith("simulator.tools."):
+        return "Engineering Tools"
+    return "Simulator Core"
+
+
+def _generate_api_rst(modules: Sequence[str]) -> str:
+    """Generate an API page for the importable simulator modules."""
+    parts: list[str] = [_rst_heading("API Reference", 0)]
+
+    grouped: dict[str, list[str]] = {}
+    for mod in modules:
+        grouped.setdefault(_module_group(mod), []).append(mod)
+
+    group_order = [
+        "Simulator Core",
+        "Thermochemistry Core",
+        "Thermochemistry Tools",
+        "Engineering Tools",
+    ]
+
+    for group in group_order:
+        mods = grouped.get(group, [])
+        if not mods:
+            continue
+        parts.append(_rst_heading(group, 1))
+        for mod in mods:
+            parts.append(_rst_heading(mod, 2))
+            parts.append(
+                f".. automodule:: {mod}\n"
+                "   :members:\n"
+                "   :undoc-members:\n"
+                "   :show-inheritance:\n\n"
+            )
+
+    return "\n".join(parts).rstrip() + "\n"
+
+
+def _generate_index_rst() -> str:
+    """Generate the Sphinx root page."""
+    return (
+        _rst_heading("vICE Simulator Documentation", 0)
+        + "\n"
+        + "vICE is a Python-first Virtual Internal Combustion Engine simulator "
+          "for cycle thermodynamics, combustion sweeps, BSFC maps, turbocharger "
+          "matching utilities, and reproducible engine-analysis workflows.\n\n"
+        + ".. toctree::\n"
+          "   :maxdepth: 2\n"
+          "   :caption: Contents:\n\n"
+          "   api\n"
+    )
+
+
+def _generate_makefile() -> str:
+    """Generate a minimal project-standard Sphinx Makefile."""
+    return (
+        "# Minimal Sphinx Makefile\n"
+        ".PHONY: html clean\n"
+        "html:\n"
+        "\t+sphinx-build -b html . _build/html\n"
+        "clean:\n"
+        "\t+rm -rf _build\n"
+    )
+
+
+def create_sphinx_skeleton(dest: str | Path | None = None, *, force: bool = False) -> Path:
+    """Create a conservative Sphinx skeleton for the vICE simulator package."""
+    out_dir = _resolve_docs_dest(dest)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    root_s = str(_repo_root())
+    if root_s not in sys.path:
+        sys.path.insert(0, root_s)
+
+    importable_modules = [m for m in _MODULES if _is_importable(m)]
+    if not importable_modules:
+        importable_modules = [
+            "simulator",
+            "simulator.cli",
+            "simulator.app",
+            "simulator.apis",
+            "simulator.core",
+            "simulator.design",
+            "simulator.fuels",
+            "simulator.io",
+            "simulator.turbo",
+            "simulator.utils",
+        ]
+
+    _write_text(out_dir / "conf.py", _generate_conf_py(), force=force)
+    _write_text(out_dir / "index.rst", _generate_index_rst(), force=force)
+    _write_text(out_dir / "api.rst", _generate_api_rst(importable_modules), force=force)
+    _write_text(out_dir / "Makefile", _generate_makefile(), force=force)
+
+    _touch(out_dir / "_static" / ".gitkeep")
+    _touch(out_dir / "_templates" / ".gitkeep")
+
+    return out_dir
+
+
+# ---------------------------------------------------------------------------
+# CLI parser
+# ---------------------------------------------------------------------------
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the vICE command-line parser."""
     parser = argparse.ArgumentParser(
         prog="simulator",
         description="vICE – Virtual Internal Combustion Engine Simulator",
@@ -15,24 +353,56 @@ def build_parser() -> argparse.ArgumentParser:
     run_p.add_argument("--config", required=True, help="Path to JSON input file")
     run_p.add_argument("--outfile", required=True, help="Path to output JSON file")
     run_p.add_argument(
-        "--cycles", type=int, default=1, help="Number of engine cycles to simulate"
+        "--cycles",
+        type=int,
+        default=1,
+        help="Number of engine cycles to simulate",
     )
 
     sub.add_parser("list-inputs", help="List example JSON input files")
 
     plot_p = sub.add_parser(
-        "plot", help="Plot an indicator diagram from a result JSON file"
+        "plot",
+        help="Plot an indicator diagram from a result JSON file",
     )
     plot_p.add_argument("--result", required=True, help="Path to result JSON file")
     plot_p.add_argument(
-        "--html", help="Output HTML path (default: next to result JSON)"
+        "--html",
+        help="Output HTML path (default: next to result JSON)",
     )
+
+    sphinx_p = sub.add_parser(
+        "sphinx-skel",
+        help="Create a conservative Sphinx docs skeleton for GitHub Pages.",
+    )
+    sphinx_p.add_argument(
+        "dest",
+        nargs="?",
+        default=None,
+        help=(
+            "Destination directory. Default: simulator/docs. "
+            "Relative 'docs' is resolved under the simulator package."
+        ),
+    )
+    sphinx_p.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing generated files.",
+    )
+
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    """Run the command-line interface."""
     parser = build_parser()
     args = parser.parse_args(list(argv) if argv is not None else None)
+
+    if args.command == "sphinx-skel":
+        out_dir = create_sphinx_skeleton(args.dest, force=bool(args.force))
+        print(str(out_dir))
+        return 0
+
     if args.command == "run":
         req = apis.RunRequest(
             verb="run-sim",
@@ -44,6 +414,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         if not res.ok:
             parser.error(res.reason)
         return 0
+
     if args.command == "list-inputs":
         res = apis.run(apis.RunRequest(verb="list-inputs"))
         if not res.ok:
@@ -51,6 +422,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         for path in res.data.get("inputs", []):
             print(path)
         return 0
+
     if args.command == "plot":
         params = {"result_path": args.result}
         if args.html:
@@ -60,6 +432,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             parser.error(res.reason)
         print(res.data.get("html"))
         return 0
+
     parser.error("Unknown command")
     return 1
 

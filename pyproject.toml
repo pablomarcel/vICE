@@ -1,0 +1,125 @@
+# pyproject.toml
+# Repo-root packaging configuration for vICE
+#
+# Project layout:
+#   vice/
+#     simulator/
+#       __init__.py
+#       cli.py
+#       core.py
+#       ...
+#
+# This file is intentionally conservative for smooth editable installs,
+# pytest runs, and Sphinx autodoc builds on GitHub Pages.
+
+[project]
+name = "vice-simulator"
+version = "0.1.0"
+description = "vICE - Virtual Internal Combustion Engine simulator"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+  { name = "Pablo Marcel Montijo" }
+]
+keywords = [
+  "internal-combustion-engine",
+  "engine-simulation",
+  "thermodynamics",
+  "bsfc",
+  "turbocharger",
+  "sphinx",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Manufacturing",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+  "numpy",
+  "scipy",
+  "pyyaml",
+  "plotly",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "pytest-xdist",
+  "pytest-cov",
+]
+docs = [
+  "sphinx>=8.2.3",
+  "furo",
+  "myst-parser",
+]
+thermo = [
+  "cantera",
+  "CoolProp",
+]
+gui = [
+  "dearpygui",
+  "pyfiglet",
+]
+all = [
+  "pytest>=8",
+  "pytest-xdist",
+  "pytest-cov",
+  "sphinx>=8.2.3",
+  "furo",
+  "myst-parser",
+  "cantera",
+  "CoolProp",
+  "dearpygui",
+  "pyfiglet",
+]
+
+[project.scripts]
+vice-simulator = "simulator.cli:main"
+simulator = "simulator.cli:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+# Root layout; find packages automatically from the repo root.
+# IMPORTANT: keep __init__.py in simulator/ and any importable subpackages,
+# such as simulator/thermo and simulator/tools, so Sphinx autodoc can import them.
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+# vICE currently has one top-level package: simulator.
+# This pattern also includes subpackages such as simulator.thermo and simulator.tools.
+include = [
+  "simulator",
+  "simulator.*",
+]
+exclude = [
+  "**/tests*",
+  "**/__pycache__*",
+  "out*",
+  "docs*",
+]
+
+[tool.setuptools.package-data]
+# Include non-Python example/config/data files inside simulator if they are present.
+# This helps examples and docs remain usable after editable or wheel installs.
+simulator = [
+  "in/*.json",
+  "in/*.csv",
+  "in/*.yaml",
+  "in/*.yml",
+  "RUNS.md",
+]
+
+# Keep pytest configuration in pytest.ini to avoid duplication.
