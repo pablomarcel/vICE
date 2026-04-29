@@ -1,0 +1,866 @@
+{
+  "name": "Taco Model 4010 CM & FM Series pump-family map",
+  "description": "First-pass visual digitization of P11.34: Taco Model 4010 CM & FM Series centrifugal pump family at 1760 rpm, Curve No. 756, sizes 5 x 4 x 10, with impeller diameters from 7.70 in to 10.40 in. Data are for vICE workflow development and later analysis, not design sign-off.",
+  "source_note": "Approximate manual digitization from the provided textbook/vendor chart image. Head curves, efficiency contours, brake-horsepower lines, and NPSH guide markers were visually read from the plotted grid; use vendor tables, CAD/PDF source data, or high-resolution WebPlotDigitizer extraction for design work.",
+  "vendor": "Taco",
+  "model": "4010",
+  "series": "CM & FM Series",
+  "curve_no": "756",
+  "speed_rpm": 1760.0,
+  "reference_speed_rpm": 1760.0,
+  "minimum_impeller_diameter_in": 7.7,
+  "size_note": "5 x 4 x 10",
+  "specific_gravity": 1.0,
+  "map_type": "centrifugal_pump_family",
+  "flow_unit": "gpm",
+  "head_unit": "ft",
+  "npsh_unit": "ft",
+  "x_axis_note": "Flow, gal/min; top axis also shows L/s.",
+  "y_axis_note": "Left axis head in ft; right axis head in m; NPSH markers in ft.",
+  "diameter_head_curves": {
+    "7_70_in": {
+      "kind": "points",
+      "points": [
+        [
+          0,
+          60
+        ],
+        [
+          125,
+          63
+        ],
+        [
+          250,
+          64
+        ],
+        [
+          375,
+          61
+        ],
+        [
+          500,
+          55
+        ],
+        [
+          625,
+          47
+        ],
+        [
+          750,
+          38
+        ],
+        [
+          850,
+          29
+        ]
+      ]
+    },
+    "8_00_in": {
+      "kind": "points",
+      "points": [
+        [
+          0,
+          67
+        ],
+        [
+          125,
+          70
+        ],
+        [
+          250,
+          71
+        ],
+        [
+          375,
+          69
+        ],
+        [
+          500,
+          63
+        ],
+        [
+          625,
+          55
+        ],
+        [
+          750,
+          44
+        ],
+        [
+          875,
+          32
+        ]
+      ]
+    },
+    "8_50_in": {
+      "kind": "points",
+      "points": [
+        [
+          0,
+          76
+        ],
+        [
+          125,
+          79
+        ],
+        [
+          250,
+          80
+        ],
+        [
+          375,
+          78
+        ],
+        [
+          500,
+          72
+        ],
+        [
+          625,
+          64
+        ],
+        [
+          750,
+          53
+        ],
+        [
+          875,
+          42
+        ],
+        [
+          975,
+          36
+        ]
+      ]
+    },
+    "9_00_in": {
+      "kind": "points",
+      "points": [
+        [
+          0,
+          85
+        ],
+        [
+          125,
+          88
+        ],
+        [
+          250,
+          89
+        ],
+        [
+          375,
+          88
+        ],
+        [
+          500,
+          83
+        ],
+        [
+          625,
+          75
+        ],
+        [
+          750,
+          65
+        ],
+        [
+          875,
+          53
+        ],
+        [
+          1000,
+          43
+        ]
+      ]
+    },
+    "9_50_in": {
+      "kind": "points",
+      "points": [
+        [
+          0,
+          96
+        ],
+        [
+          125,
+          99
+        ],
+        [
+          250,
+          100
+        ],
+        [
+          375,
+          99
+        ],
+        [
+          500,
+          96
+        ],
+        [
+          625,
+          90
+        ],
+        [
+          750,
+          81
+        ],
+        [
+          875,
+          70
+        ],
+        [
+          1000,
+          57
+        ],
+        [
+          1125,
+          45
+        ]
+      ]
+    },
+    "10_00_in": {
+      "kind": "points",
+      "points": [
+        [
+          0,
+          107
+        ],
+        [
+          125,
+          110
+        ],
+        [
+          250,
+          110
+        ],
+        [
+          375,
+          109
+        ],
+        [
+          500,
+          106
+        ],
+        [
+          625,
+          100
+        ],
+        [
+          750,
+          92
+        ],
+        [
+          875,
+          82
+        ],
+        [
+          1000,
+          70
+        ],
+        [
+          1125,
+          58
+        ],
+        [
+          1200,
+          50
+        ]
+      ]
+    },
+    "10_40_in": {
+      "kind": "points",
+      "points": [
+        [
+          0,
+          117
+        ],
+        [
+          125,
+          119
+        ],
+        [
+          250,
+          120
+        ],
+        [
+          375,
+          119
+        ],
+        [
+          500,
+          116
+        ],
+        [
+          625,
+          110
+        ],
+        [
+          750,
+          103
+        ],
+        [
+          875,
+          94
+        ],
+        [
+          1000,
+          83
+        ],
+        [
+          1125,
+          70
+        ],
+        [
+          1200,
+          60
+        ]
+      ]
+    }
+  },
+  "npshr": {
+    "kind": "points",
+    "axis": "marker_guides_top",
+    "points": [
+      [
+        560,
+        10
+      ],
+      [
+        700,
+        12
+      ],
+      [
+        800,
+        14
+      ],
+      [
+        900,
+        16
+      ],
+      [
+        990,
+        18
+      ],
+      [
+        1070,
+        20
+      ],
+      [
+        1150,
+        22
+      ]
+    ],
+    "note": "Vertical dashed guide markers read from the chart; not a continuous NPSHR curve. Markers labeled 10, 12, 14, 16, 18, 20, and 22 ft."
+  },
+  "efficiency_contours": {
+    "0.50_left": {
+      "points": [
+        [
+          245,
+          120
+        ],
+        [
+          260,
+          104
+        ],
+        [
+          265,
+          88
+        ],
+        [
+          250,
+          70
+        ],
+        [
+          245,
+          62
+        ]
+      ]
+    },
+    "0.60_left": {
+      "points": [
+        [
+          330,
+          119
+        ],
+        [
+          345,
+          103
+        ],
+        [
+          350,
+          88
+        ],
+        [
+          332,
+          70
+        ],
+        [
+          315,
+          63
+        ]
+      ]
+    },
+    "0.65": {
+      "points": [
+        [
+          375,
+          118
+        ],
+        [
+          392,
+          102
+        ],
+        [
+          405,
+          88
+        ],
+        [
+          395,
+          72
+        ],
+        [
+          375,
+          64
+        ]
+      ]
+    },
+    "0.70": {
+      "points": [
+        [
+          450,
+          117
+        ],
+        [
+          470,
+          102
+        ],
+        [
+          485,
+          88
+        ],
+        [
+          480,
+          74
+        ],
+        [
+          455,
+          58
+        ]
+      ]
+    },
+    "0.74": {
+      "points": [
+        [
+          510,
+          116
+        ],
+        [
+          535,
+          101
+        ],
+        [
+          555,
+          88
+        ],
+        [
+          555,
+          74
+        ],
+        [
+          525,
+          60
+        ]
+      ]
+    },
+    "0.78": {
+      "points": [
+        [
+          555,
+          116
+        ],
+        [
+          590,
+          102
+        ],
+        [
+          620,
+          89
+        ],
+        [
+          645,
+          76
+        ],
+        [
+          625,
+          68
+        ]
+      ]
+    },
+    "0.80": {
+      "points": [
+        [
+          610,
+          115
+        ],
+        [
+          655,
+          102
+        ],
+        [
+          700,
+          90
+        ],
+        [
+          760,
+          82
+        ],
+        [
+          845,
+          86
+        ]
+      ]
+    },
+    "0.82_left": {
+      "points": [
+        [
+          675,
+          113
+        ],
+        [
+          720,
+          105
+        ],
+        [
+          770,
+          98
+        ],
+        [
+          845,
+          98
+        ],
+        [
+          910,
+          101
+        ]
+      ]
+    },
+    "0.83": {
+      "points": [
+        [
+          760,
+          104
+        ],
+        [
+          820,
+          100
+        ],
+        [
+          875,
+          97
+        ],
+        [
+          930,
+          92
+        ]
+      ]
+    },
+    "0.82_right": {
+      "points": [
+        [
+          835,
+          101
+        ],
+        [
+          890,
+          95
+        ],
+        [
+          940,
+          90
+        ],
+        [
+          985,
+          85
+        ]
+      ]
+    },
+    "0.80_right": {
+      "points": [
+        [
+          890,
+          96
+        ],
+        [
+          945,
+          88
+        ],
+        [
+          995,
+          82
+        ],
+        [
+          1045,
+          76
+        ]
+      ]
+    },
+    "0.78_right": {
+      "points": [
+        [
+          950,
+          88
+        ],
+        [
+          1000,
+          81
+        ],
+        [
+          1045,
+          75
+        ],
+        [
+          1090,
+          69
+        ]
+      ]
+    },
+    "0.76_right": {
+      "points": [
+        [
+          1000,
+          82
+        ],
+        [
+          1045,
+          76
+        ],
+        [
+          1090,
+          70
+        ],
+        [
+          1130,
+          64
+        ]
+      ]
+    },
+    "0.74_right": {
+      "points": [
+        [
+          1060,
+          76
+        ],
+        [
+          1105,
+          70
+        ],
+        [
+          1145,
+          65
+        ],
+        [
+          1180,
+          60
+        ]
+      ]
+    },
+    "0.70_right": {
+      "points": [
+        [
+          1115,
+          70
+        ],
+        [
+          1160,
+          64
+        ],
+        [
+          1195,
+          59
+        ]
+      ]
+    },
+    "0.65_right": {
+      "points": [
+        [
+          1170,
+          65
+        ],
+        [
+          1200,
+          61
+        ],
+        [
+          1225,
+          57
+        ]
+      ]
+    },
+    "0.60_right": {
+      "points": [
+        [
+          1205,
+          60
+        ],
+        [
+          1225,
+          57
+        ],
+        [
+          1240,
+          55
+        ]
+      ]
+    },
+    "0.50_bottom": {
+      "points": [
+        [
+          700,
+          36
+        ],
+        [
+          775,
+          36
+        ],
+        [
+          850,
+          30
+        ]
+      ]
+    }
+  },
+  "brake_hp_lines": {
+    "10": {
+      "points": [
+        [
+          250,
+          124
+        ],
+        [
+          400,
+          104
+        ],
+        [
+          550,
+          82
+        ],
+        [
+          700,
+          62
+        ],
+        [
+          850,
+          43
+        ],
+        [
+          1000,
+          28
+        ]
+      ]
+    },
+    "15": {
+      "points": [
+        [
+          500,
+          116
+        ],
+        [
+          625,
+          100
+        ],
+        [
+          750,
+          81
+        ],
+        [
+          875,
+          62
+        ],
+        [
+          1000,
+          42
+        ]
+      ]
+    },
+    "20": {
+      "points": [
+        [
+          700,
+          112
+        ],
+        [
+          800,
+          96
+        ],
+        [
+          900,
+          78
+        ],
+        [
+          1000,
+          60
+        ],
+        [
+          1100,
+          41
+        ]
+      ]
+    },
+    "25": {
+      "points": [
+        [
+          900,
+          97
+        ],
+        [
+          975,
+          84
+        ],
+        [
+          1050,
+          70
+        ],
+        [
+          1125,
+          56
+        ],
+        [
+          1200,
+          40
+        ]
+      ]
+    },
+    "30": {
+      "points": [
+        [
+          1025,
+          86
+        ],
+        [
+          1075,
+          77
+        ],
+        [
+          1125,
+          67
+        ],
+        [
+          1175,
+          57
+        ],
+        [
+          1225,
+          48
+        ]
+      ]
+    }
+  },
+  "notes": [
+    "Impeller head curves are approximate blue traces from the chart.",
+    "Efficiency contours are approximate black contour traces and labels from 50% to 83% peak plus right-side falloff.",
+    "Brake horsepower lines are approximate dashed diagonal traces labeled 10, 15, 20, 25, and 30 bhp.",
+    "NPSH markers are vertical dashed guide markers, not a fully continuous curve."
+  ]
+}
