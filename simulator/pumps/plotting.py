@@ -13,7 +13,10 @@ The plotting layer covers three common engineering views:
 * single operating-point overlays showing pump curve, system curve, and the
   solved intersection;
 * RPM-sweep dashboards showing flow, head, power, BEP ratio, and NPSH margin
-  against engine speed.
+  against engine speed;
+* speed-family overlays similar to Frank White Fig. 11.9(a), where a
+  fixed-size pump curve is shifted to several shaft speeds using affinity laws
+  and optionally intersected with a system curve.
 """
 
 from dataclasses import dataclass
@@ -244,6 +247,100 @@ def write_sweep_plot(
     return PlotExportResult(html=html_written, image=image_written)
 
 
+
+def write_speed_family_plot(
+    pump_path: str | Path,
+    *,
+    speeds_rpm: Sequence[float],
+    system_path: str | Path | None = None,
+    out_html: str | Path | None = None,
+    out_image: str | Path | None = None,
+    title: str | None = None,
+    samples: int = 300,
+    include_system: bool = True,
+    include_operating_points: bool = True,
+    include_bep_locus: bool = True,
+    npsh_margin_required_ft: float = 3.0,
+    width: int = 1100,
+    height: int = 760,
+    dpi: int = 160,
+) -> PlotExportResult:
+    """Write a shaft-speed family plot for a fixed-size centrifugal pump.
+
+    This is the computational analog of Frank White Fig. 11.9(a): the impeller
+    diameter is held fixed while shaft speed is varied. Head curves are shifted
+    using the affinity rules, so flow scales with ``N`` and head scales with
+    ``N^2``. If a system curve is supplied, operating points are solved and
+    overlaid for each speed.
+
+    Parameters
+    ----------
+    pump_path:
+        Path to a single-pump JSON curve file.
+    speeds_rpm:
+        Shaft speeds to plot [rpm]. These are pump speeds, not engine speeds.
+    system_path:
+        Optional system-curve JSON. When provided, the system curve and solved
+        operating points can be shown on the same axes.
+    include_bep_locus:
+        If the pump JSON defines ``bep_flow`` and ``bep_head``, draw the scaled
+        BEP locus ``Q_BEP ~ N`` and ``H_BEP ~ N^2``.
+    """
+    pump = CentrifugalWaterPump.from_json(pump_path)
+    speeds = _clean_speeds(speeds_rpm)
+    system: QuadraticSystemCurve | None = None
+    suction: SuctionState | None = None
+    if system_path is not None:
+        system_data = load_system_json(system_path)
+        system = QuadraticSystemCurve.from_dict(system_data)
+        suction = SuctionState.from_dict(system_data.get("suction"))
+
+    html_written: str | None = None
+    image_written: str | None = None
+
+    if out_html:
+        fig = speed_family_figure_plotly(
+            pump,
+            speeds,
+            system=system,
+            suction=suction,
+            title=title,
+            samples=samples,
+            include_system=include_system,
+            include_operating_points=include_operating_points,
+            include_bep_locus=include_bep_locus,
+            npsh_margin_required_ft=npsh_margin_required_ft,
+            width=width,
+            height=height,
+        )
+        html_path = _ensure_parent(out_html)
+        fig.write_html(str(html_path), include_plotlyjs="cdn", full_html=True)
+        html_written = str(html_path)
+
+    if out_image:
+        fig_mpl = speed_family_figure_matplotlib(
+            pump,
+            speeds,
+            system=system,
+            suction=suction,
+            title=title,
+            samples=samples,
+            include_system=include_system,
+            include_operating_points=include_operating_points,
+            include_bep_locus=include_bep_locus,
+            npsh_margin_required_ft=npsh_margin_required_ft,
+        )
+        image_path = _ensure_parent(out_image)
+        fig_mpl.savefig(str(image_path), dpi=dpi, bbox_inches="tight")
+        _close_matplotlib(fig_mpl)
+        image_written = str(image_path)
+
+    if not out_html and not out_image:
+        raise ValueError("At least one output path is required: out_html or out_image")
+
+    return PlotExportResult(html=html_written, image=image_written)
+
+
 # ---------------------------------------------------------------------------
 # Plotly figure factories
 # ---------------------------------------------------------------------------
@@ -423,6 +520,113 @@ def sweep_figure_plotly(payload: Mapping[str, Any], *, title: str | None = None)
     return fig
 
 
+
+def speed_family_figure_plotly(
+    pump: CentrifugalWaterPump,
+    speeds_rpm: Sequence[float],
+    *,
+    system: QuadraticSystemCurve | None = None,
+    suction: SuctionState | None = None,
+    title: str | None = None,
+    samples: int = 300,
+    include_system: bool = True,
+    include_operating_points: bool = True,
+    include_bep_locus: bool = True,
+    npsh_margin_required_ft: float = 3.0,
+    width: int = 1100,
+    height: int = 760,
+):
+    """Return a Plotly figure showing head curves at multiple shaft speeds."""
+    go = _require_plotly()
+    speeds = _clean_speeds(speeds_rpm)
+    fig = go.Figure()
+
+    all_q: list[float] = []
+    for speed in speeds:
+        q_vals = _speed_curve_q_grid(pump, speed, samples=samples)
+        h_vals = [pump.head_ft(q, speed) for q in q_vals]
+        all_q.extend(q_vals)
+        fig.add_trace(go.Scatter(
+            x=q_vals,
+            y=h_vals,
+            mode="lines",
+            name=f"H(Q), n={speed:g} rpm",
+            hovertemplate=(
+                f"n={speed:g} rpm<br>Q=%{{x:.4g}} {pump.flow_unit}"
+                "<br>H=%{y:.4g} ft<extra></extra>"
+            ),
+        ))
+
+    # Scaled BEP locus, useful because the user can see where the best point
+    # moves as speed changes. This is the natural marker to add to Fig. 11.9.
+    bep_pts = _bep_locus_points(pump, speeds)
+    if include_bep_locus and bep_pts:
+        fig.add_trace(go.Scatter(
+            x=[p[1] for p in bep_pts],
+            y=[p[2] for p in bep_pts],
+            mode="lines+markers+text",
+            name="Scaled BEP locus",
+            text=[f"{p[0]:g} rpm" for p in bep_pts],
+            textposition="top center",
+            line={"dash": "dot", "width": 2.0},
+            hovertemplate="n=%{text}<br>Q_BEP=%{x:.4g}<br>H_BEP=%{y:.4g} ft<extra></extra>",
+        ))
+
+    # System curve and solved OPs, if a system is provided.
+    if system is not None and include_system:
+        q_max = max(all_q) if all_q else 1.0
+        q_vals_sys = [q_max * i / max(samples - 1, 1) for i in range(samples)]
+        fig.add_trace(go.Scatter(
+            x=q_vals_sys,
+            y=[system.head_ft(q) for q in q_vals_sys],
+            mode="lines",
+            name="System curve",
+            line={"dash": "dash", "width": 2.5},
+            hovertemplate=f"Q=%{{x:.4g}} {system.flow_unit}<br>Hsys=%{{y:.4g}} ft<extra></extra>",
+        ))
+
+    if system is not None and include_operating_points:
+        op_rows = _operating_points_for_speed_family(
+            pump,
+            system,
+            suction,
+            speeds,
+            npsh_margin_required_ft=npsh_margin_required_ft,
+        )
+        if op_rows:
+            fig.add_trace(go.Scatter(
+                x=[p["flow"] for p in op_rows],
+                y=[p["head_pump_ft"] for p in op_rows],
+                mode="markers+text",
+                name="Operating points",
+                text=[f"{p['pump_speed_rpm']:g} rpm" for p in op_rows],
+                textposition="middle right",
+                marker={"size": 10, "symbol": "circle-open"},
+                customdata=[[p.get("brake_kw"), p.get("efficiency"), p.get("bep_ratio"), p.get("npsh_margin_ft"), p.get("status")] for p in op_rows],
+                hovertemplate=(
+                    "n=%{text}<br>Q=%{x:.4g}<br>H=%{y:.4g} ft"
+                    "<br>Brake kW=%{customdata[0]:.4g}"
+                    "<br>η=%{customdata[1]:.4g}"
+                    "<br>BEP ratio=%{customdata[2]:.4g}"
+                    "<br>NPSH margin=%{customdata[3]:.4g} ft"
+                    "<br>Status=%{customdata[4]}<extra></extra>"
+                ),
+            ))
+
+    subtitle = f"reference speed = {pump.reference_speed_rpm:g} rpm; impeller/size fixed"
+    fig.update_layout(
+        title=title or f"Speed family — {pump.name}<br><sup>{subtitle}</sup>",
+        width=width,
+        height=height,
+        hovermode="closest",
+        xaxis_title=f"Flow [{pump.flow_unit}]",
+        yaxis_title=f"Head [{pump.head_unit}]",
+        legend={"orientation": "v", "x": 1.02, "y": 1.0},
+        margin={"l": 70, "r": 190, "t": 90, "b": 70},
+    )
+    return fig
+
+
 # ---------------------------------------------------------------------------
 # Matplotlib figure factories
 # ---------------------------------------------------------------------------
@@ -566,9 +770,140 @@ def sweep_figure_matplotlib(payload: Mapping[str, Any], *, title: str | None = N
     return fig
 
 
+
+def speed_family_figure_matplotlib(
+    pump: CentrifugalWaterPump,
+    speeds_rpm: Sequence[float],
+    *,
+    system: QuadraticSystemCurve | None = None,
+    suction: SuctionState | None = None,
+    title: str | None = None,
+    samples: int = 300,
+    include_system: bool = True,
+    include_operating_points: bool = True,
+    include_bep_locus: bool = True,
+    npsh_margin_required_ft: float = 3.0,
+):
+    """Return a Matplotlib figure showing head curves at multiple shaft speeds."""
+    plt = _require_matplotlib()
+    speeds = _clean_speeds(speeds_rpm)
+    fig, ax = plt.subplots(figsize=(10.5, 6.8))
+
+    all_q: list[float] = []
+    for speed in speeds:
+        q_vals = _speed_curve_q_grid(pump, speed, samples=samples)
+        h_vals = [pump.head_ft(q, speed) for q in q_vals]
+        all_q.extend(q_vals)
+        ax.plot(q_vals, h_vals, linewidth=2.0, label=f"n={speed:g} rpm")
+
+    bep_pts = _bep_locus_points(pump, speeds)
+    if include_bep_locus and bep_pts:
+        ax.plot(
+            [p[1] for p in bep_pts],
+            [p[2] for p in bep_pts],
+            linestyle=":",
+            marker="o",
+            linewidth=2.0,
+            label="Scaled BEP locus",
+        )
+        for speed, q, h in bep_pts:
+            ax.annotate(f"{speed:g}", (q, h), xytext=(4, 4), textcoords="offset points", fontsize="small")
+
+    if system is not None and include_system:
+        q_max = max(all_q) if all_q else 1.0
+        q_vals_sys = [q_max * i / max(samples - 1, 1) for i in range(samples)]
+        ax.plot(q_vals_sys, [system.head_ft(q) for q in q_vals_sys], linestyle="--", linewidth=2.2, label="System curve")
+
+    if system is not None and include_operating_points:
+        op_rows = _operating_points_for_speed_family(
+            pump,
+            system,
+            suction,
+            speeds,
+            npsh_margin_required_ft=npsh_margin_required_ft,
+        )
+        if op_rows:
+            ax.scatter([p["flow"] for p in op_rows], [p["head_pump_ft"] for p in op_rows], s=55, zorder=5, label="Operating points")
+            for p in op_rows:
+                ax.annotate(f"{p['pump_speed_rpm']:g}", (p["flow"], p["head_pump_ft"]), xytext=(6, 0), textcoords="offset points", fontsize="small")
+
+    ax.set_title(title or f"Speed family — {pump.name}\n(reference {pump.reference_speed_rpm:g} rpm, fixed impeller size)")
+    ax.set_xlabel(f"Flow [{pump.flow_unit}]")
+    ax.set_ylabel(f"Head [{pump.head_unit}]")
+    ax.grid(True, which="both", linewidth=0.5, alpha=0.45)
+    ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5), fontsize="small")
+    fig.tight_layout()
+    return fig
+
+
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
+
+def _clean_speeds(speeds_rpm: Sequence[float]) -> list[float]:
+    """Return sorted unique positive pump speeds."""
+    speeds: list[float] = []
+    for speed in speeds_rpm:
+        s = float(speed)
+        if s <= 0.0 or math.isnan(s) or math.isinf(s):
+            raise ValueError(f"Invalid pump speed: {speed!r}")
+        if not any(abs(s - old) < 1e-9 for old in speeds):
+            speeds.append(s)
+    if not speeds:
+        raise ValueError("At least one positive pump speed is required")
+    return sorted(speeds)
+
+
+def _speed_curve_q_grid(pump: CentrifugalWaterPump, pump_rpm: float, *, samples: int) -> list[float]:
+    """Flow grid for a speed-scaled pump curve."""
+    q0, q1 = pump.flow_bounds_at_speed(pump_rpm)
+    q0 = max(q0, 0.0)
+    if q1 <= q0:
+        q1 = q0 + 1.0
+    if samples < 2:
+        samples = 2
+    return [q0 + (q1 - q0) * i / (samples - 1) for i in range(samples)]
+
+
+def _bep_locus_points(pump: CentrifugalWaterPump, speeds_rpm: Sequence[float]) -> list[tuple[float, float, float]]:
+    """Return (speed, scaled_Q_BEP, scaled_H_BEP) points when BEP data exists."""
+    if pump.bep_flow is None or pump.bep_head is None:
+        return []
+    out: list[tuple[float, float, float]] = []
+    for speed in speeds_rpm:
+        scale = pump.speed_scale(float(speed))
+        out.append((float(speed), scale.flow_from_reference(pump.bep_flow), scale.head_from_reference(pump.bep_head)))
+    return out
+
+
+def _operating_points_for_speed_family(
+    pump: CentrifugalWaterPump,
+    system: QuadraticSystemCurve,
+    suction: SuctionState | None,
+    speeds_rpm: Sequence[float],
+    *,
+    npsh_margin_required_ft: float,
+) -> list[dict[str, Any]]:
+    """Solve and return operating points for each speed; skip failed brackets."""
+    rows: list[dict[str, Any]] = []
+    for speed in speeds_rpm:
+        try:
+            point = match_system(
+                pump,
+                system,
+                float(speed),
+                suction=suction,
+                engine_speed_rpm=None,
+                npsh_margin_required_ft=npsh_margin_required_ft,
+            )
+        except Exception:
+            # On early design plots, some speeds may not intersect the proposed
+            # system curve. Keep the plot useful instead of failing the export.
+            continue
+        rows.append(point.to_dict())
+    return rows
+
 
 def _require_plotly():
     try:

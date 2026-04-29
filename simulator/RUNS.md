@@ -1257,3 +1257,59 @@ runroot python -m simulator.cli pump-plot-sweep \
   --out-html simulator/pumps/out/cooling_diesel_engine_sweep_dashboard.html \
   --out-png simulator/pumps/out/cooling_diesel_engine_sweep_dashboard.png
 ```
+
+# Pump Speed-Family Plot Commands
+
+These commands generate Frank White Fig. 11.9(a)-style plots: fixed impeller size, multiple pump shaft speeds, and head curves shifted with affinity laws.
+
+## 18.4) Mock Panther coolant pump: speed-family only
+
+```bash
+runroot python -m simulator.cli pump-plot-speed-family \
+  --pump simulator/pumps/data/pump_curves/mock_panther_coolant_pump.json \
+  --speeds "1800,2400,3000,3600,4200" \
+  --out-html simulator/pumps/out/mock_panther_speed_family.html \
+  --out-png simulator/pumps/out/mock_panther_speed_family.png
+```
+
+## Mock Panther coolant pump: speed-family with system curve and operating points
+
+```bash
+runroot python -m simulator.cli pump-plot-speed-family \
+  --pump simulator/pumps/data/pump_curves/mock_panther_coolant_pump.json \
+  --system simulator/pumps/in/cooling_panther_mock.json \
+  --rpm-min 1800 \
+  --rpm-max 4200 \
+  --rpm-step 600 \
+  --out-html simulator/pumps/out/mock_panther_speed_family_with_system.html \
+  --out-png simulator/pumps/out/mock_panther_speed_family_with_system.png
+```
+
+## Frank White 32-in pump: speed-family with Example 11.6 system
+
+```bash
+runroot python -m simulator.cli pump-plot-speed-family \
+  --pump simulator/pumps/data/pump_curves/frank_white_32in_1170rpm.json \
+  --system simulator/pumps/in/water_pump_frank_white_example_11_6.json \
+  --speeds "936,1170,1404" \
+  --out-html simulator/pumps/out/frank_white_32in_speed_family.html \
+  --out-png simulator/pumps/out/frank_white_32in_speed_family.png
+```
+
+## Useful switches
+
+```bash
+--no-system             # hide system curve even if --system is provided
+--no-operating-points   # hide solved operating points
+--no-bep-locus          # hide scaled BEP locus
+--samples 400           # smoother curves
+--dpi 200               # sharper PNG output
+```
+
+Recommended interpretation:
+
+- Each blue-style head trace is the same fixed-size pump at a different shaft speed.
+- Flow capacity moves roughly with shaft speed: Q ~ N.
+- Head capability moves roughly with speed squared: H ~ N^2.
+- The scaled BEP locus shows where the preferred operating point moves as speed changes.
+- With a system curve, the intersection markers show the actual operating point at each shaft speed.

@@ -43,6 +43,10 @@ Commands
 ``pump-plot-sweep``
     Export an RPM-sweep dashboard from a pump sweep result JSON.
 
+``pump-plot-speed-family``
+    Export a fixed-impeller speed-family plot using the affinity laws, similar
+    to Frank White Fig. 11.9(a).
+
 ``sphinx-skel``
     Generate a conservative Sphinx documentation skeleton under
     ``simulator/docs`` by default.
@@ -395,6 +399,37 @@ def create_sphinx_skeleton(dest: str | Path | None = None, *, force: bool = Fals
     return out_dir
 
 
+
+def _parse_float_list(text: str | None) -> list[float]:
+    """Parse a comma/space separated list of floats."""
+    if text is None or str(text).strip() == "":
+        return []
+    raw = str(text).replace(",", " ").split()
+    return [float(item) for item in raw]
+
+
+def _build_speed_list_from_args(args: argparse.Namespace) -> list[float]:
+    """Return pump speeds from --speeds or --rpm-min/--rpm-max/--rpm-step."""
+    speeds = _parse_float_list(getattr(args, "speeds", None))
+    if speeds:
+        return speeds
+
+    rpm_min = getattr(args, "rpm_min", None)
+    rpm_max = getattr(args, "rpm_max", None)
+    rpm_step = getattr(args, "rpm_step", None)
+    if rpm_min is None or rpm_max is None or rpm_step is None:
+        raise ValueError("Provide either --speeds or all of --rpm-min, --rpm-max, and --rpm-step")
+    if float(rpm_step) <= 0.0:
+        raise ValueError("--rpm-step must be positive")
+
+    out: list[float] = []
+    rpm = float(rpm_min)
+    while rpm <= float(rpm_max) + 1e-9:
+        out.append(rpm)
+        rpm += float(rpm_step)
+    return out
+
+
 # ---------------------------------------------------------------------------
 # CLI parser
 # ---------------------------------------------------------------------------
@@ -544,6 +579,34 @@ def build_parser() -> argparse.ArgumentParser:
     pump_plot_sweep_p.add_argument("--out-png", help="Output static image path, typically .png; .svg/.pdf also work")
     pump_plot_sweep_p.add_argument("--title", help="Optional plot title")
     pump_plot_sweep_p.add_argument("--dpi", type=int, default=160, help="DPI for static image output")
+
+    pump_plot_speed_p = sub.add_parser(
+        "pump-plot-speed-family",
+        help="Export a fixed-impeller shaft-speed family plot using affinity laws.",
+    )
+    pump_plot_speed_p.add_argument("--pump", required=True, help="Path to single-pump curve JSON")
+    pump_plot_speed_p.add_argument("--system", help="Optional system curve JSON to overlay and solve operating points")
+    pump_plot_speed_p.add_argument(
+        "--speeds",
+        help="Comma/space separated pump shaft speeds [rpm], e.g. '2400,3000,3600'",
+    )
+    pump_plot_speed_p.add_argument("--rpm-min", type=float, help="Minimum pump shaft speed [rpm]")
+    pump_plot_speed_p.add_argument("--rpm-max", type=float, help="Maximum pump shaft speed [rpm]")
+    pump_plot_speed_p.add_argument("--rpm-step", type=float, help="Pump shaft speed step [rpm]")
+    pump_plot_speed_p.add_argument("--out-html", help="Output Plotly HTML path")
+    pump_plot_speed_p.add_argument("--out-png", help="Output static image path, typically .png; .svg/.pdf also work")
+    pump_plot_speed_p.add_argument("--title", help="Optional plot title")
+    pump_plot_speed_p.add_argument("--samples", type=int, default=300, help="Number of sample points per speed curve")
+    pump_plot_speed_p.add_argument("--dpi", type=int, default=160, help="DPI for static image output")
+    pump_plot_speed_p.add_argument("--no-system", action="store_true", help="Hide the system curve even if --system is provided")
+    pump_plot_speed_p.add_argument("--no-operating-points", action="store_true", help="Hide solved operating points")
+    pump_plot_speed_p.add_argument("--no-bep-locus", action="store_true", help="Hide the scaled BEP locus")
+    pump_plot_speed_p.add_argument(
+        "--npsh-margin-ft",
+        type=float,
+        default=3.0,
+        help="Required NPSH margin used when solving operating points [ft]",
+    )
 
     sphinx_p = sub.add_parser(
         "sphinx-skel",
@@ -774,6 +837,34 @@ def main(argv: Sequence[str] | None = None) -> int:
             out_html=args.out_html,
             out_image=args.out_png,
             title=args.title,
+            dpi=args.dpi,
+        )
+        if result.html:
+            print(result.html)
+        if result.image:
+            print(result.image)
+        return 0
+
+    if args.command == "pump-plot-speed-family":
+        from simulator.pumps.plotting import write_speed_family_plot
+
+        try:
+            speeds = _build_speed_list_from_args(args)
+        except ValueError as exc:
+            parser.error(str(exc))
+
+        result = write_speed_family_plot(
+            args.pump,
+            speeds_rpm=speeds,
+            system_path=args.system,
+            out_html=args.out_html,
+            out_image=args.out_png,
+            title=args.title,
+            samples=args.samples,
+            include_system=not args.no_system,
+            include_operating_points=not args.no_operating_points,
+            include_bep_locus=not args.no_bep_locus,
+            npsh_margin_required_ft=args.npsh_margin_ft,
             dpi=args.dpi,
         )
         if result.html:

@@ -17,6 +17,7 @@ from .plotting import (
     PlotExportResult,
     write_operating_point_plot,
     write_pump_family_plot,
+    write_speed_family_plot,
     write_sweep_plot,
 )
 from .pump_map import DigitizedPumpFamilyMap, load_pump_family_json
@@ -52,8 +53,9 @@ __all__ = [
     "write_combined_csv",
     "write_combined_json",
     "write_operating_point_plot",
+    "write_pump_family_plot",
     "write_points_csv",
     "write_points_json",
-    "write_pump_family_plot",
+    "write_speed_family_plot",
     "write_sweep_plot",
 ]
