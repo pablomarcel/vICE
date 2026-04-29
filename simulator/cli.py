@@ -274,8 +274,31 @@ def _module_group(module_name: str) -> str:
     return "Simulator Core"
 
 
+# Package aggregator modules re-export objects from implementation modules.
+# Documenting their members causes Sphinx duplicate-object warnings such as
+# ``simulator.main`` being emitted once from ``simulator`` and once from
+# ``simulator.main``. Keep package roots as landing summaries and document
+# implementation modules with full autodoc member listings.
+_PACKAGE_SUMMARY_MODULES: tuple[str, ...] = (
+    "simulator",
+    "simulator.pumps",
+)
+
+
+def _automodule_block(module_name: str) -> str:
+    """Return a duplicate-safe automodule block for ``api.rst``."""
+    if module_name in _PACKAGE_SUMMARY_MODULES:
+        return f".. automodule:: {module_name}\n\n"
+    return (
+        f".. automodule:: {module_name}\n"
+        "   :members:\n"
+        "   :undoc-members:\n"
+        "   :show-inheritance:\n\n"
+    )
+
+
 def _generate_api_rst(modules: Sequence[str]) -> str:
-    """Generate an API page for the importable simulator modules."""
+    """Generate a duplicate-safe API page for importable simulator modules."""
     parts: list[str] = [_rst_heading("API Reference", 0)]
 
     grouped: dict[str, list[str]] = {}
@@ -296,15 +319,9 @@ def _generate_api_rst(modules: Sequence[str]) -> str:
         parts.append(_rst_heading(group, 1))
         for mod in mods:
             parts.append(_rst_heading(mod, 2))
-            parts.append(
-                f".. automodule:: {mod}\n"
-                "   :members:\n"
-                "   :undoc-members:\n"
-                "   :show-inheritance:\n\n"
-            )
+            parts.append(_automodule_block(mod))
 
     return "\n".join(parts).rstrip() + "\n"
-
 
 def _generate_index_rst() -> str:
     """Generate the Sphinx root page."""

@@ -19,11 +19,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
           cache: "pip"
@@ -32,42 +30,46 @@ jobs:
         env:
           PIP_DISABLE_PIP_VERSION_CHECK: 1
         run: |
-          set -euo pipefail
           python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          fi
-
-          # Install the project in editable mode when packaging metadata exists.
-          # This lets Sphinx autodoc import simulator.* modules from the repo.
+          # Install the package in editable mode so Sphinx autodoc can import simulator.*
           if [ -f pyproject.toml ] || [ -f setup.cfg ] || [ -f setup.py ]; then
             pip install -e .
           fi
 
-          # Prefer a docs extra if available, but fall back to a conservative docs stack.
+          # Prefer the docs extra if pyproject.toml defines it; otherwise use a safe fallback.
           pip install -e ".[docs]" || pip install sphinx furo myst-parser sphinx-autodoc-typehints || pip install sphinx alabaster
 
-      - name: Regenerate simulator Sphinx skeleton/API index
+      - name: Regenerate simulator Sphinx skeleton
         env:
           PYTHONPATH: ${{ github.workspace }}
         shell: bash
         run: |
           set -euo pipefail
 
-          # Keep api.rst synchronized with the current simulator module list.
-          # This is important after adding new packages such as simulator.pumps.*.
+          DOCS="simulator/docs"
+          mkdir -p "$DOCS"
+
+          # Keep api.rst synchronized with the latest CLI/module list.
+          # simulator.cli generates package roots without :members: so autodoc
+          # does not duplicate re-exported objects from __init__.py files.
           python -m simulator.cli sphinx-skel simulator/docs --force
 
-          test -f simulator/docs/conf.py
-          test -f simulator/docs/index.rst
-          test -f simulator/docs/api.rst
-          test -f simulator/docs/Makefile
-          test -f simulator/docs/_static/.gitkeep
-          test -f simulator/docs/_templates/.gitkeep
+          test -f "$DOCS/conf.py"
+          test -f "$DOCS/index.rst"
+          test -f "$DOCS/api.rst"
+          test -f "$DOCS/Makefile"
+          test -f "$DOCS/_static/.gitkeep"
+          test -f "$DOCS/_templates/.gitkeep"
 
-          echo "==> Generated API modules containing pump package entries:"
-          grep -n "simulator.pumps" simulator/docs/api.rst || true
+          echo "==> Generated API modules"
+          grep -E '^simulator(\.|$)' "$DOCS/api.rst" || true
+
+          # Guard against the duplicate-object failure seen when package roots
+          # are documented with :members:. These blocks should be summaries only.
+          python -c "from pathlib import Path; t=Path('simulator/docs/api.rst').read_text(encoding='utf-8'); modules=('simulator','simulator.pumps'); [(_ for _ in ()).throw(SystemExit(f'Missing automodule block for {m}')) for m in modules if t.find(f'.. automodule:: {m}\\n') == -1]; [(_ for _ in ()).throw(SystemExit(f'{m} block must not use :members:')) for m in modules for i in [t.find(f'.. automodule:: {m}\\n')] for e in [t.find('\\n\\n', i)] for block in [t[i:e if e != -1 else len(t)]] if ':members:' in block]"
+
 
       - name: Build simulator Sphinx docs
         env:
@@ -81,44 +83,24 @@ jobs:
 
           if [ ! -d "$DOCS" ]; then
             echo "Expected Sphinx docs directory not found: $DOCS"
-            echo "Create simulator/docs with conf.py, index.rst, api.rst, _static/.gitkeep, and _templates/.gitkeep."
             exit 1
           fi
 
-          echo "==> Building $DOCS with warnings treated as errors"
+          echo "==> Building $DOCS"
           sphinx-build -b html -W --keep-going "$DOCS" "$BUILT"
 
-      - name: Verify generated docs include pump API pages
+      - name: Verify generated pump API pages
         shell: bash
         run: |
           set -euo pipefail
 
           BUILT="simulator/docs/_build/html"
+          test -d "$BUILT"
 
-          if [ ! -d "$BUILT" ]; then
-            echo "Built docs directory not found: $BUILT"
-            exit 1
-          fi
-
-          if ! grep -R "simulator.pumps.water_pump" "$BUILT" >/dev/null 2>&1; then
-            echo "Pump API documentation appears to be missing from built HTML."
-            echo "Expected to find simulator.pumps.water_pump in $BUILT."
-            exit 1
-          fi
-
-          if ! grep -R "simulator.pumps.combined" "$BUILT" >/dev/null 2>&1; then
-            echo "Combined pump API documentation appears to be missing from built HTML."
-            echo "Expected to find simulator.pumps.combined in $BUILT."
-            exit 1
-          fi
-
-          if ! grep -R "simulator.pumps.pump_map" "$BUILT" >/dev/null 2>&1; then
-            echo "Pump-map API documentation appears to be missing from built HTML."
-            echo "Expected to find simulator.pumps.pump_map in $BUILT."
-            exit 1
-          fi
-
-          echo "==> Pump API documentation found in built HTML."
+          # Verify the newly added pump modules made it into rendered HTML.
+          grep -R "simulator.pumps.water_pump" "$BUILT"
+          grep -R "simulator.pumps.combined" "$BUILT"
+          grep -R "simulator.pumps.pump_map" "$BUILT"
 
       - name: Assemble site folder
         shell: bash
@@ -139,7 +121,6 @@ jobs:
 
           # Single-package project: publish simulator/docs directly at the GitHub Pages root.
           # The repository name is vICE, but the importable Python package remains simulator.
-          # Do not publish under /simulator/ unless you intentionally want nested docs URLs.
           cp -R "$BUILT/"* _site/
 
           # Add a lightweight landing fallback only if Sphinx somehow did not emit index.html.

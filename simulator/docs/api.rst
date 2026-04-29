@@ -8,9 +8,6 @@ simulator
 ~~~~~~~~~
 
 .. automodule:: simulator
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 
 simulator.cli
@@ -107,9 +104,6 @@ simulator.pumps
 ~~~~~~~~~~~~~~~
 
 .. automodule:: simulator.pumps
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 
 simulator.pumps.affinity
