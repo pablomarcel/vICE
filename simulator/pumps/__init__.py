@@ -13,6 +13,12 @@ from .combined import (
     write_combined_json,
 )
 from .curves import Curve1D
+from .plotting import (
+    PlotExportResult,
+    write_operating_point_plot,
+    write_pump_family_plot,
+    write_sweep_plot,
+)
 from .pump_map import DigitizedPumpFamilyMap, load_pump_family_json
 from .system_curve import QuadraticSystemCurve
 from .water_pump import (
@@ -32,6 +38,7 @@ __all__ = [
     "CombinedPumpOperatingPoint",
     "Curve1D",
     "DigitizedPumpFamilyMap",
+    "PlotExportResult",
     "PumpOperatingPoint",
     "QuadraticSystemCurve",
     "SuctionState",
@@ -44,6 +51,9 @@ __all__ = [
     "rpm_sweep",
     "write_combined_csv",
     "write_combined_json",
+    "write_operating_point_plot",
     "write_points_csv",
     "write_points_json",
+    "write_pump_family_plot",
+    "write_sweep_plot",
 ]

@@ -34,6 +34,15 @@ Commands
 ``pump-family-summary``
     Summarize a digitized multi-curve pump-family map JSON.
 
+``pump-plot-family``
+    Export a digitized pump-family map to Plotly HTML and/or static image.
+
+``pump-plot-operating``
+    Export a pump/system operating-point overlay plot.
+
+``pump-plot-sweep``
+    Export an RPM-sweep dashboard from a pump sweep result JSON.
+
 ``sphinx-skel``
     Generate a conservative Sphinx documentation skeleton under
     ``simulator/docs`` by default.
@@ -149,6 +158,7 @@ _MODULES: tuple[str, ...] = (
     "simulator.pumps.curves",
     "simulator.pumps.power",
     "simulator.pumps.pump_map",
+    "simulator.pumps.plotting",
     "simulator.pumps.system_curve",
     "simulator.pumps.water_pump",
     # Thermochemistry layer
@@ -489,6 +499,52 @@ def build_parser() -> argparse.ArgumentParser:
     pump_family_p.add_argument("--map", required=True, help="Path to pump-family map JSON")
     pump_family_p.add_argument("--out-json", help="Optional output JSON path")
 
+    pump_plot_family_p = sub.add_parser(
+        "pump-plot-family",
+        help="Export a digitized pump-family map to Plotly HTML and/or static image.",
+    )
+    pump_plot_family_p.add_argument("--map", required=True, help="Path to pump-family map JSON")
+    pump_plot_family_p.add_argument("--out-html", help="Output Plotly HTML path")
+    pump_plot_family_p.add_argument("--out-png", help="Output static image path, typically .png; .svg/.pdf also work")
+    pump_plot_family_p.add_argument("--title", help="Optional plot title")
+    pump_plot_family_p.add_argument("--no-efficiency", action="store_true", help="Hide efficiency contours")
+    pump_plot_family_p.add_argument("--no-power", action="store_true", help="Hide brake-horsepower guide lines")
+    pump_plot_family_p.add_argument("--no-npsh", action="store_true", help="Hide NPSH/NPSHR layer")
+    pump_plot_family_p.add_argument("--dpi", type=int, default=160, help="DPI for static image output")
+
+    pump_plot_operating_p = sub.add_parser(
+        "pump-plot-operating",
+        help="Export a pump/system operating-point overlay plot.",
+    )
+    pump_plot_operating_p.add_argument("--pump", required=True, help="Path to pump curve JSON")
+    pump_plot_operating_p.add_argument("--system", required=True, help="Path to system curve JSON")
+    pump_plot_operating_p.add_argument("--pump-rpm", type=float, required=True, help="Pump speed [rpm]")
+    pump_plot_operating_p.add_argument("--engine-rpm", type=float, help="Optional engine speed metadata [rpm]")
+    pump_plot_operating_p.add_argument("--result-json", help="Optional existing pump result JSON to plot the operating point")
+    pump_plot_operating_p.add_argument("--arrangement", choices=["single", "parallel", "series"], default="single", help="Pump arrangement for the plotted pump curve")
+    pump_plot_operating_p.add_argument("--number-of-pumps", type=int, default=1, help="Number of identical pumps for series/parallel overlays")
+    pump_plot_operating_p.add_argument("--out-html", help="Output Plotly HTML path")
+    pump_plot_operating_p.add_argument("--out-png", help="Output static image path, typically .png; .svg/.pdf also work")
+    pump_plot_operating_p.add_argument("--title", help="Optional plot title")
+    pump_plot_operating_p.add_argument("--samples", type=int, default=300, help="Number of sample points for curve plotting")
+    pump_plot_operating_p.add_argument("--dpi", type=int, default=160, help="DPI for static image output")
+    pump_plot_operating_p.add_argument(
+        "--npsh-margin-ft",
+        type=float,
+        default=3.0,
+        help="Required NPSH margin used when recomputing the operating point [ft]",
+    )
+
+    pump_plot_sweep_p = sub.add_parser(
+        "pump-plot-sweep",
+        help="Export an RPM-sweep dashboard from a pump sweep result JSON.",
+    )
+    pump_plot_sweep_p.add_argument("--result", required=True, help="Path to pump_rpm_sweep result JSON")
+    pump_plot_sweep_p.add_argument("--out-html", help="Output Plotly HTML path")
+    pump_plot_sweep_p.add_argument("--out-png", help="Output static image path, typically .png; .svg/.pdf also work")
+    pump_plot_sweep_p.add_argument("--title", help="Optional plot title")
+    pump_plot_sweep_p.add_argument("--dpi", type=int, default=160, help="DPI for static image output")
+
     sphinx_p = sub.add_parser(
         "sphinx-skel",
         help="Create a conservative Sphinx docs skeleton for GitHub Pages.",
@@ -665,6 +721,65 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(args.out_json)
         else:
             print(json.dumps(payload, indent=2))
+        return 0
+
+    if args.command == "pump-plot-family":
+        from simulator.pumps.plotting import write_pump_family_plot
+
+        result = write_pump_family_plot(
+            args.map,
+            out_html=args.out_html,
+            out_image=args.out_png,
+            title=args.title,
+            include_efficiency=not args.no_efficiency,
+            include_power=not args.no_power,
+            include_npsh=not args.no_npsh,
+            dpi=args.dpi,
+        )
+        if result.html:
+            print(result.html)
+        if result.image:
+            print(result.image)
+        return 0
+
+    if args.command == "pump-plot-operating":
+        from simulator.pumps.plotting import write_operating_point_plot
+
+        result = write_operating_point_plot(
+            args.pump,
+            args.system,
+            pump_rpm=args.pump_rpm,
+            result_json=args.result_json,
+            out_html=args.out_html,
+            out_image=args.out_png,
+            arrangement=args.arrangement,
+            number_of_pumps=args.number_of_pumps,
+            engine_rpm=args.engine_rpm,
+            npsh_margin_required_ft=args.npsh_margin_ft,
+            title=args.title,
+            samples=args.samples,
+            dpi=args.dpi,
+        )
+        if result.html:
+            print(result.html)
+        if result.image:
+            print(result.image)
+        return 0
+
+    if args.command == "pump-plot-sweep":
+        from simulator.pumps.plotting import write_sweep_plot
+
+        result = write_sweep_plot(
+            args.result,
+            out_html=args.out_html,
+            out_image=args.out_png,
+            title=args.title,
+            dpi=args.dpi,
+        )
+        if result.html:
+            print(result.html)
+        if result.image:
+            print(result.image)
         return 0
 
     if args.command == "sphinx-skel":

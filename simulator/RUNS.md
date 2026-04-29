@@ -1154,3 +1154,106 @@ runroot python -m simulator.cli pump-family-summary \
   --map simulator/pumps/data/pump_curves/figure_11_7_b.json \
   --out-json simulator/pumps/out/figure_11_7_b_summary.json
 ```
+
+#### 18) Plotting
+
+# Pump Plotting Commands
+
+These commands assume the project-standard `runroot` helper is available from `simulator/RUNS.md` and that commands are launched from the `simulator` package workflow.
+
+## 18.1). Plot a rich pump-family map
+
+```bash
+runroot python -m simulator.cli pump-plot-family \
+  --map simulator/pumps/data/pump_curves/figure_11_7_a.json \
+  --out-html simulator/pumps/out/figure_11_7_a_map.html \
+  --out-png simulator/pumps/out/figure_11_7_a_map.png
+```
+
+```bash
+runroot python -m simulator.cli pump-plot-family \
+  --map simulator/pumps/data/pump_curves/figure_11_7_b.json \
+  --out-html simulator/pumps/out/figure_11_7_b_map.html \
+  --out-png simulator/pumps/out/figure_11_7_b_map.png
+```
+
+```bash
+runroot python -m simulator.cli pump-plot-family \
+  --map simulator/pumps/data/pump_curves/model_4010.json \
+  --out-html simulator/pumps/out/model_4010_map.html \
+  --out-png simulator/pumps/out/model_4010_map.png
+```
+
+```bash
+runroot python -m simulator.cli pump-plot-family \
+  --map simulator/pumps/data/pump_curves/model_4013.json \
+  --out-html simulator/pumps/out/model_4013_map.html \
+  --out-png simulator/pumps/out/model_4013_map.png
+```
+
+Optional layer switches:
+
+```bash
+runroot python -m simulator.cli pump-plot-family \
+  --map simulator/pumps/data/pump_curves/figure_11_7_a.json \
+  --out-html simulator/pumps/out/figure_11_7_a_head_only.html \
+  --no-efficiency \
+  --no-power \
+  --no-npsh
+```
+
+## 18.2) Plot a pump/system operating point
+
+```bash
+runroot python -m simulator.cli pump-plot-operating \
+  --pump simulator/pumps/data/pump_curves/mock_panther_coolant_pump.json \
+  --system simulator/pumps/in/cooling_panther_mock.json \
+  --pump-rpm 3000 \
+  --out-html simulator/pumps/out/mock_panther_operating.html \
+  --out-png simulator/pumps/out/mock_panther_operating.png
+```
+
+For an existing result JSON, pass `--result-json` so the plotted marker comes from the saved result:
+
+```bash
+runroot python -m simulator.cli pump-plot-operating \
+  --pump simulator/pumps/data/pump_curves/frank_white_32in_1170rpm.json \
+  --system simulator/pumps/in/water_pump_frank_white_example_11_6.json \
+  --pump-rpm 1170 \
+  --result-json simulator/pumps/out/frank_white_example_11_6_match.json \
+  --out-html simulator/pumps/out/frank_white_example_11_6_match.html \
+  --out-png simulator/pumps/out/frank_white_example_11_6_match.png
+```
+
+For series/parallel overlays:
+
+```bash
+runroot python -m simulator.cli pump-plot-operating \
+  --pump simulator/pumps/data/pump_curves/frank_white_32in_1170rpm.json \
+  --system simulator/pumps/in/water_pump_frank_white_example_11_7_parallel.json \
+  --pump-rpm 1170 \
+  --arrangement parallel \
+  --number-of-pumps 2 \
+  --out-html simulator/pumps/out/frank_white_example_11_7_parallel.html \
+  --out-png simulator/pumps/out/frank_white_example_11_7_parallel.png
+```
+
+```bash
+runroot python -m simulator.cli pump-plot-operating \
+  --pump simulator/pumps/data/pump_curves/frank_white_32in_1170rpm.json \
+  --system simulator/pumps/in/water_pump_frank_white_example_11_8_series.json \
+  --pump-rpm 1170 \
+  --arrangement series \
+  --number-of-pumps 2 \
+  --out-html simulator/pumps/out/frank_white_example_11_8_series.html \
+  --out-png simulator/pumps/out/frank_white_example_11_8_series.png
+```
+
+## 18.3) Plot an RPM sweep dashboard
+
+```bash
+runroot python -m simulator.cli pump-plot-sweep \
+  --result simulator/pumps/out/diesel_engine_coolant_sweep.json \
+  --out-html simulator/pumps/out/cooling_diesel_engine_sweep_dashboard.html \
+  --out-png simulator/pumps/out/cooling_diesel_engine_sweep_dashboard.png
+```
