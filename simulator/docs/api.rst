@@ -130,6 +130,15 @@ simulator.pumps.cavitation
    :show-inheritance:
 
 
+simulator.pumps.combined
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: simulator.pumps.combined
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 simulator.pumps.curves
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -143,6 +152,15 @@ simulator.pumps.power
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: simulator.pumps.power
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+simulator.pumps.pump_map
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: simulator.pumps.pump_map
    :members:
    :undoc-members:
    :show-inheritance:

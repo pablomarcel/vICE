@@ -1,0 +1,17 @@
+{
+  "name": "Frank White Example 11.7 parallel-pump system curve",
+  "description": "Same system curve as Example 11.6, used with two identical 32-in pumps in parallel: Hs = 120 + 1.335 Q_total^2, Q_total in 1000 gal/min.",
+  "flow_unit": "1000_gal_per_min",
+  "head_unit": "ft",
+  "system_curve": {
+    "model": "quadratic",
+    "static_head_ft": 120.0,
+    "k": 1.335,
+    "exponent": 2.0,
+    "flow_unit": "1000_gal_per_min",
+    "head_unit": "ft"
+  },
+  "suction": {
+    "fixed_npsha_ft": 35.0
+  }
+}

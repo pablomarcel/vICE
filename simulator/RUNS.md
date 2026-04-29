@@ -1,6 +1,6 @@
-# RUNS — `ice/simulator` Command Cookbook (v1)
+# RUNS — `vICE/simulator` Command Cookbook
 
-Run these from the **ICE root** (the directory that contains `simulator/`).  
+Run these from the **vICE root** (the directory that contains `simulator/`).  
 Outputs default to `simulator/out/`.
 
 > CLI
@@ -11,12 +11,12 @@ Outputs default to `simulator/out/`.
 >
 > The sections below assume you have a `runroot` helper set up.
 
-#### -1) One-time session bootstrap (ICE-aware)
+#### -1) One-time session bootstrap (vICE-aware)
 
 Define a small helper so you can run commands from anywhere inside the repo:
 
 ```bash
-# --- run-from-root helpers (ICE-aware) -------------------------------------
+# --- run-from-root helpers (vICE-aware) -------------------------------------
 _sim_root() {
   # Walk up until we find a directory that *contains* the simulator package.
   local d="$PWD"
@@ -24,9 +24,9 @@ _sim_root() {
     if [ -d "$d/simulator" ] && [ -f "$d/simulator/__init__.py" ]; then
       echo "$d"; return
     fi
-    # Monorepo layout: .../repo/ice/simulator
-    if [ -d "$d/ice/simulator" ] && [ -f "$d/ice/simulator/__init__.py" ]; then
-      echo "$d/ice"; return
+    # Monorepo layout: .../repo/vice/simulator
+    if [ -d "$d/vice/simulator" ] && [ -f "$d/vice/simulator/__init__.py" ]; then
+      echo "$d/vice"; return
     fi
     d="$(dirname "$d")"
   done
@@ -784,7 +784,7 @@ hackable** so you can later:
 ### 12.3) New CLI tool: `simulator.tools.turbo_match`
 
 This CLI is patterned after your existing tools (`tool_bsfc_map_epa.py`,
-`tool_bsfc_vs_speed_rc.py`, etc.) and is meant to be run from the ICE root
+`tool_bsfc_vs_speed_rc.py`, etc.) and is meant to be run from the vICE root
 using your usual `runroot` helper.
 
 ### 12.4) Turbo - Compressor Matching
@@ -1030,7 +1030,7 @@ runroot python -m simulator.cli pump-match-system \
 
 Expected result: approximately `Q = 15.2 x 1000 gal/min` and `H = 430 ft`.
 
-## 17.3) Mock Panther diesel coolant-pump sweep
+## 17.3) Mock Diesel Engine Coolant-Pump Sweep
 
 ```bash
 runroot python -m simulator.cli pump-rpm-sweep \
@@ -1040,8 +1040,8 @@ runroot python -m simulator.cli pump-rpm-sweep \
   --engine-rpm-max 3600 \
   --engine-rpm-step 300 \
   --pulley-ratio 1.20 \
-  --out-json simulator/pumps/out/panther_coolant_sweep.json \
-  --out-csv simulator/pumps/out/panther_coolant_sweep.csv
+  --out-json simulator/pumps/out/diesel_engine_coolant_sweep.json \
+  --out-csv simulator/pumps/out/diesel_engine_coolant_sweep.csv
 ```
 
 The output table includes:
@@ -1057,7 +1057,7 @@ brake_hp, brake_kw, NPSHA, NPSHR, NPSH margin, BEP flow, BEP ratio, status
 runroot python - << 'PY'
 from pathlib import Path
 import csv
-path = Path('simulator/pumps/out/panther_coolant_sweep.csv')
+path = Path('simulator/pumps/out/diesel_engine_coolant_sweep.csv')
 with path.open() as f:
     for i, row in enumerate(csv.DictReader(f)):
         print(row)
@@ -1066,7 +1066,7 @@ with path.open() as f:
 PY
 ```
 
-## 17.5) Interview talking point
+## 17.5) System Matching
 
 The package is built around pump/system matching:
 
@@ -1078,3 +1078,79 @@ For a belt-driven coolant pump, pump RPM follows engine RPM through a pulley
 ratio. The centrifugal pump curve moves with the affinity laws, while the
 cooling-system curve moves when thermostat position, coolant temperature,
 restriction, pressure cap behavior, or aeration changes.
+
+## 17.6) Frank White Example 11.6 Part (b) — can speed change put the pump at BEP?
+
+This command checks the scaled BEP point against the same system curve.
+For Example 11.6, the expected result is **impossible** because the scaled BEP
+path cannot intersect `Hs = 120 + 1.335 Q^2`.
+
+```bash
+runroot python -m simulator.cli pump-bep-speed \
+  --pump simulator/pumps/data/pump_curves/frank_white_32in_1170rpm.json \
+  --system simulator/pumps/in/water_pump_frank_white_example_11_6.json \
+  --out-json simulator/pumps/out/frank_white_example_11_6_bep_speed.json
+```
+
+## 17.7) Frank White Example 11.7 — two identical 32-in pumps in parallel
+
+For parallel identical pumps, the total flow is split equally between pumps,
+while each pump operates at the same head:
+
+```text
+H_combined(Q_total) = H_single(Q_total / 2)
+```
+
+```bash
+runroot python -m simulator.cli pump-combined \
+  --pump simulator/pumps/data/pump_curves/frank_white_32in_1170rpm.json \
+  --system simulator/pumps/in/water_pump_frank_white_example_11_7_parallel.json \
+  --arrangement parallel \
+  --number-of-pumps 2 \
+  --pump-rpm 1170 \
+  --out-json simulator/pumps/out/example_11_7_parallel.json \
+  --out-csv simulator/pumps/out/example_11_7_parallel.csv
+```
+
+Expected result: approximately `Q_total = 16.3 x 1000 gal/min`, with each pump
+near `8.13 x 1000 gal/min`.
+
+## 17.8) Frank White Example 11.8 — two identical 32-in pumps in series
+
+For series identical pumps, the same flow passes through both pumps, while the
+heads add:
+
+```text
+H_combined(Q) = 2 H_single(Q)
+```
+
+```bash
+runroot python -m simulator.cli pump-combined \
+  --pump simulator/pumps/data/pump_curves/frank_white_32in_1170rpm.json \
+  --system simulator/pumps/in/water_pump_frank_white_example_11_8_series.json \
+  --arrangement series \
+  --number-of-pumps 2 \
+  --pump-rpm 1170 \
+  --out-json simulator/pumps/out/example_11_8_series.json \
+  --out-csv simulator/pumps/out/example_11_8_series.csv
+```
+
+Expected result: approximately `Q = 16.1 x 1000 gal/min` and combined operating
+head near `845 ft`.
+
+## 17.9) Pump-family map summaries — Frank White Fig. 11.7a and 11.7b
+
+These JSON files preserve the richer supplier-style chart structure: impeller
+head curves, NPSHR curve, efficiency contours, and brake-horsepower lines.
+
+```bash
+runroot python -m simulator.cli pump-family-summary \
+  --map simulator/pumps/data/pump_curves/figure_11_7_a.json \
+  --out-json simulator/pumps/out/figure_11_7_a_summary.json
+```
+
+```bash
+runroot python -m simulator.cli pump-family-summary \
+  --map simulator/pumps/data/pump_curves/figure_11_7_b.json \
+  --out-json simulator/pumps/out/figure_11_7_b_summary.json
+```

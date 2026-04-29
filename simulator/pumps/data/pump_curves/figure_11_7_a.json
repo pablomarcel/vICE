@@ -1,0 +1,47 @@
+{
+  "name": "Frank White Fig. 11.7a pump-family map",
+  "description": "First-pass visual digitization of Fig. 11.7a: basic casing at n = 1170 r/min with 28-in, 32-in, and 36.75-in impellers. Data are for software workflow development, not supplier sign-off.",
+  "source_note": "Approximate chart digitization from the provided textbook scan. Curves were manually read from the plotted grid; use higher-resolution digitization or supplier data for design work.",
+  "map_type": "centrifugal_pump_family",
+  "reference_speed_rpm": 1170.0,
+  "flow_unit": "1000_gal_per_min",
+  "head_unit": "ft",
+  "npsh_unit": "ft",
+  "x_axis_note": "U.S. gallons per minute x 1000",
+  "diameter_head_curves": {
+    "28_in": {
+      "kind": "points",
+      "points": [[0, 358], [4, 357], [8, 348], [12, 330], [16, 305], [18, 285], [20, 260]]
+    },
+    "32_in": {
+      "kind": "points",
+      "points": [[0, 500], [4, 490], [8, 470], [12, 450], [16, 420], [20, 386], [24, 340], [26, 315]]
+    },
+    "36_75_in": {
+      "kind": "points",
+      "points": [[0, 660], [4, 655], [8, 640], [12, 625], [16, 600], [20, 565], [24, 520], [26, 470]]
+    }
+  },
+  "npshr": {
+    "kind": "points",
+    "axis": "right",
+    "points": [[12, 22], [16, 24], [20, 30], [22, 34], [24, 40], [26, 52]]
+  },
+  "efficiency_contours": {
+    "0.65": {"points": [[9.0, 320], [9.4, 420], [9.8, 520], [10.2, 650]]},
+    "0.72": {"points": [[12.0, 315], [12.2, 420], [12.4, 520], [12.8, 650]]},
+    "0.78": {"points": [[14.0, 300], [14.2, 410], [14.5, 510], [14.9, 610]]},
+    "0.82": {"points": [[16.0, 295], [16.1, 390], [16.0, 500], [16.2, 605]]},
+    "0.85": {"points": [[18.0, 300], [17.8, 380], [18.2, 470], [19.2, 555]]},
+    "0.87_left": {"points": [[20.2, 300], [20.4, 375], [21.0, 460], [22.0, 550]]},
+    "0.88": {"points": [[21.0, 420], [22.0, 415], [23.0, 440], [24.0, 485]]},
+    "0.87_right": {"points": [[22.0, 560], [24.0, 520], [25.5, 480]]}
+  },
+  "brake_hp_lines": {
+    "1500": {"points": [[5.0, 500], [10.0, 400], [15.0, 300], [21.0, 195]]},
+    "2000": {"points": [[7.2, 585], [12.0, 500], [17.0, 400], [23.0, 245]]},
+    "2500": {"points": [[10.0, 645], [15.0, 560], [20.0, 465], [26.0, 285]]},
+    "3000": {"points": [[12.0, 650], [17.0, 575], [22.0, 495], [28.0, 325]]},
+    "3500": {"points": [[15.0, 660], [20.0, 580], [25.0, 500], [30.0, 370]]}
+  }
+}

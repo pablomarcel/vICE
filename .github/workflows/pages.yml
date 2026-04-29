@@ -19,9 +19,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.13"
           cache: "pip"
@@ -30,16 +32,42 @@ jobs:
         env:
           PIP_DISABLE_PIP_VERSION_CHECK: 1
         run: |
+          set -euo pipefail
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-          # Install the package in editable mode so Sphinx autodoc can import simulator.*
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+          # Install the project in editable mode when packaging metadata exists.
+          # This lets Sphinx autodoc import simulator.* modules from the repo.
           if [ -f pyproject.toml ] || [ -f setup.cfg ] || [ -f setup.py ]; then
             pip install -e .
           fi
 
-          # Prefer the docs extra if pyproject.toml defines it; otherwise use a safe fallback.
+          # Prefer a docs extra if available, but fall back to a conservative docs stack.
           pip install -e ".[docs]" || pip install sphinx furo myst-parser sphinx-autodoc-typehints || pip install sphinx alabaster
+
+      - name: Regenerate simulator Sphinx skeleton/API index
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Keep api.rst synchronized with the current simulator module list.
+          # This is important after adding new packages such as simulator.pumps.*.
+          python -m simulator.cli sphinx-skel simulator/docs --force
+
+          test -f simulator/docs/conf.py
+          test -f simulator/docs/index.rst
+          test -f simulator/docs/api.rst
+          test -f simulator/docs/Makefile
+          test -f simulator/docs/_static/.gitkeep
+          test -f simulator/docs/_templates/.gitkeep
+
+          echo "==> Generated API modules containing pump package entries:"
+          grep -n "simulator.pumps" simulator/docs/api.rst || true
 
       - name: Build simulator Sphinx docs
         env:
@@ -49,6 +77,7 @@ jobs:
           set -euo pipefail
 
           DOCS="simulator/docs"
+          BUILT="$DOCS/_build/html"
 
           if [ ! -d "$DOCS" ]; then
             echo "Expected Sphinx docs directory not found: $DOCS"
@@ -56,12 +85,40 @@ jobs:
             exit 1
           fi
 
-          echo "==> Building $DOCS"
-          if [ -f "$DOCS/Makefile" ]; then
-            make -C "$DOCS" html || sphinx-build -b html -W --keep-going "$DOCS" "$DOCS/_build/html"
-          else
-            sphinx-build -b html -W --keep-going "$DOCS" "$DOCS/_build/html"
+          echo "==> Building $DOCS with warnings treated as errors"
+          sphinx-build -b html -W --keep-going "$DOCS" "$BUILT"
+
+      - name: Verify generated docs include pump API pages
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BUILT="simulator/docs/_build/html"
+
+          if [ ! -d "$BUILT" ]; then
+            echo "Built docs directory not found: $BUILT"
+            exit 1
           fi
+
+          if ! grep -R "simulator.pumps.water_pump" "$BUILT" >/dev/null 2>&1; then
+            echo "Pump API documentation appears to be missing from built HTML."
+            echo "Expected to find simulator.pumps.water_pump in $BUILT."
+            exit 1
+          fi
+
+          if ! grep -R "simulator.pumps.combined" "$BUILT" >/dev/null 2>&1; then
+            echo "Combined pump API documentation appears to be missing from built HTML."
+            echo "Expected to find simulator.pumps.combined in $BUILT."
+            exit 1
+          fi
+
+          if ! grep -R "simulator.pumps.pump_map" "$BUILT" >/dev/null 2>&1; then
+            echo "Pump-map API documentation appears to be missing from built HTML."
+            echo "Expected to find simulator.pumps.pump_map in $BUILT."
+            exit 1
+          fi
+
+          echo "==> Pump API documentation found in built HTML."
 
       - name: Assemble site folder
         shell: bash

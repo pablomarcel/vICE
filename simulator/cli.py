@@ -25,6 +25,15 @@ Commands
 ``pump-rpm-sweep``
     Sweep pump operating points across an engine RPM range.
 
+``pump-combined``
+    Match identical pumps combined in parallel or series to a system curve.
+
+``pump-bep-speed``
+    Check whether changing pump speed can put the scaled BEP on a system curve.
+
+``pump-family-summary``
+    Summarize a digitized multi-curve pump-family map JSON.
+
 ``sphinx-skel``
     Generate a conservative Sphinx documentation skeleton under
     ``simulator/docs`` by default.
@@ -136,8 +145,10 @@ _MODULES: tuple[str, ...] = (
     "simulator.pumps",
     "simulator.pumps.affinity",
     "simulator.pumps.cavitation",
+    "simulator.pumps.combined",
     "simulator.pumps.curves",
     "simulator.pumps.power",
+    "simulator.pumps.pump_map",
     "simulator.pumps.system_curve",
     "simulator.pumps.water_pump",
     # Thermochemistry layer
@@ -427,6 +438,40 @@ def build_parser() -> argparse.ArgumentParser:
         help="Required NPSH margin used for status flagging [ft]",
     )
 
+    pump_combined_p = sub.add_parser(
+        "pump-combined",
+        help="Match identical centrifugal pumps in parallel or series to a system curve.",
+    )
+    pump_combined_p.add_argument("--pump", required=True, help="Path to pump curve JSON")
+    pump_combined_p.add_argument("--system", required=True, help="Path to system curve JSON")
+    pump_combined_p.add_argument("--arrangement", choices=["parallel", "series"], required=True, help="Pump arrangement")
+    pump_combined_p.add_argument("--number-of-pumps", type=int, default=2, help="Number of identical pumps")
+    pump_combined_p.add_argument("--pump-rpm", type=float, required=True, help="Pump speed [rpm]")
+    pump_combined_p.add_argument("--engine-rpm", type=float, help="Optional engine speed metadata [rpm]")
+    pump_combined_p.add_argument("--out-json", required=True, help="Output JSON path")
+    pump_combined_p.add_argument("--out-csv", help="Optional one-row CSV output path")
+    pump_combined_p.add_argument(
+        "--npsh-margin-ft",
+        type=float,
+        default=3.0,
+        help="Required NPSH margin used for status flagging [ft]",
+    )
+
+    pump_bep_p = sub.add_parser(
+        "pump-bep-speed",
+        help="Check if a speed change can put the scaled BEP point on the system curve.",
+    )
+    pump_bep_p.add_argument("--pump", required=True, help="Path to pump curve JSON")
+    pump_bep_p.add_argument("--system", required=True, help="Path to system curve JSON")
+    pump_bep_p.add_argument("--out-json", required=True, help="Output JSON path")
+
+    pump_family_p = sub.add_parser(
+        "pump-family-summary",
+        help="Summarize a digitized multi-curve pump-family map JSON.",
+    )
+    pump_family_p.add_argument("--map", required=True, help="Path to pump-family map JSON")
+    pump_family_p.add_argument("--out-json", help="Optional output JSON path")
+
     sphinx_p = sub.add_parser(
         "sphinx-skel",
         help="Create a conservative Sphinx docs skeleton for GitHub Pages.",
@@ -527,6 +572,82 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.out_csv:
             write_points_csv(args.out_csv, points)
         print(args.out_json)
+        return 0
+
+    if args.command == "pump-combined":
+        from simulator.pumps import (
+            CentrifugalWaterPump,
+            QuadraticSystemCurve,
+            SuctionState,
+            load_system_json,
+            match_combined_system,
+            write_combined_csv,
+            write_combined_json,
+        )
+
+        pump = CentrifugalWaterPump.from_json(args.pump)
+        system_data = load_system_json(args.system)
+        system = QuadraticSystemCurve.from_dict(system_data)
+        suction = SuctionState.from_dict(system_data.get("suction"))
+        point = match_combined_system(
+            pump,
+            system,
+            args.pump_rpm,
+            arrangement=args.arrangement,
+            number_of_pumps=args.number_of_pumps,
+            suction=suction,
+            engine_speed_rpm=args.engine_rpm,
+            npsh_margin_required_ft=args.npsh_margin_ft,
+        )
+        payload = {
+            "kind": "pump_combined",
+            "arrangement": args.arrangement,
+            "number_of_pumps": args.number_of_pumps,
+            "pump": pump.to_summary_dict(),
+            "system": system.to_dict(),
+            "suction": suction.to_dict(),
+            "point": point.to_dict(),
+        }
+        write_combined_json(args.out_json, payload)
+        if args.out_csv:
+            write_combined_csv(args.out_csv, [point])
+        print(args.out_json)
+        return 0
+
+    if args.command == "pump-bep-speed":
+        from simulator.pumps import (
+            CentrifugalWaterPump,
+            QuadraticSystemCurve,
+            bep_speed_to_match_system,
+            load_system_json,
+            write_points_json,
+        )
+
+        pump = CentrifugalWaterPump.from_json(args.pump)
+        system_data = load_system_json(args.system)
+        system = QuadraticSystemCurve.from_dict(system_data)
+        result = bep_speed_to_match_system(pump, system)
+        payload = {
+            "kind": "pump_bep_speed",
+            "pump": pump.to_summary_dict(),
+            "system": system.to_dict(),
+            "result": result.to_dict(),
+        }
+        write_points_json(args.out_json, payload)
+        print(args.out_json)
+        return 0
+
+    if args.command == "pump-family-summary":
+        import json
+        from simulator.pumps import load_pump_family_json, write_points_json
+
+        family = load_pump_family_json(args.map)
+        payload = {"kind": "pump_family_summary", "summary": family.to_summary_dict()}
+        if args.out_json:
+            write_points_json(args.out_json, payload)
+            print(args.out_json)
+        else:
+            print(json.dumps(payload, indent=2))
         return 0
 
     if args.command == "sphinx-skel":

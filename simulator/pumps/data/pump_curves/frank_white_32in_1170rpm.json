@@ -1,7 +1,7 @@
 {
   "name": "Frank White Example 11.6 - 32 in centrifugal pump",
-  "description": "Textbook mock curve fitted as H = 490 - 0.26 Q^2, where Q is in 1000 gal/min and H is in ft, at 1170 rpm.",
-  "source_note": "Mock/digitized textbook-style data for solver validation, not supplier design data.",
+  "description": "Frank White Example 11.6 validation fixture using the 32-in pump parabolic head-curve fit H = 490 - 0.26 Q^2, where Q is in 1000 gal/min and H is in ft, at 1170 rpm.",
+  "source_note": "Validation fixture based on the Example 11.6 parabolic fit for the 32-in pump head curve. Efficiency and NPSHR points are approximate helper curves, not a full digitization of Fig. 11.7a.",
   "pump_type": "centrifugal",
   "reference_speed_rpm": 1170.0,
   "flow_unit": "1000_gal_per_min",
@@ -14,26 +14,60 @@
   "curves": {
     "head": {
       "kind": "polynomial",
-      "coefficients_desc": [-0.26, 0.0, 490.0]
+      "coefficients_desc": [
+        -0.26,
+        0.0,
+        490.0
+      ]
     },
     "efficiency": {
       "kind": "points",
       "points": [
-        [8.0, 0.55],
-        [12.0, 0.72],
-        [15.2, 0.82],
-        [20.0, 0.86],
-        [24.0, 0.76]
+        [
+          8.0,
+          0.6
+        ],
+        [
+          12.0,
+          0.72
+        ],
+        [
+          15.2,
+          0.82
+        ],
+        [
+          20.0,
+          0.86
+        ],
+        [
+          24.0,
+          0.76
+        ]
       ]
     },
     "npshr": {
       "kind": "points",
       "points": [
-        [8.0, 8.0],
-        [12.0, 10.0],
-        [16.0, 14.0],
-        [20.0, 20.0],
-        [24.0, 30.0]
+        [
+          8.0,
+          8.0
+        ],
+        [
+          12.0,
+          10.0
+        ],
+        [
+          16.0,
+          14.0
+        ],
+        [
+          20.0,
+          20.0
+        ],
+        [
+          24.0,
+          30.0
+        ]
       ]
     }
   }
